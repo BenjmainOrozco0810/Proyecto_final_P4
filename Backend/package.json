@@ -1,0 +1,21 @@
+{
+  "name": "chat-app-backend",
+  "version": "1.0.0",
+  "description": "Backend para sistema de chat en tiempo real - Universidad Panamericana",
+  "main": "sever.js",
+  "scripts": {
+    "start": "node sever.js",
+    "dev": "nodemon sever.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "mongoose": "^8.19.3",
+    "socket.io": "^4.7.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "author": "Tu nombre y tu compañero",
+  "license": "MIT"
+}

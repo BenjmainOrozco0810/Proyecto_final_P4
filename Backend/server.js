@@ -1,0 +1,250 @@
+const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
+const cors = require('cors');
+const path = require('path');
+const connectDB = require('./config/database'); // ← NUEVA LÍNEA
+const User = require('./models/User');         // ← NUEVA LÍNEA
+
+const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
+});
+
+// Conectar a la base de datos
+connectDB(); // ← NUEVA LÍNEA
+
+
+// Configuración de Base de Datos
+const connectDB = async () => {
+    try {
+        // Opción 1: MongoDB Atlas (recomendado para producción)
+        await mongoose.connect('mongodb+srv://usuario:contraseña@cluster0.tu-cluster.mongodb.net/chat-app?retryWrites=true&w=majority');
+        
+        // Opción 2: MongoDB local (para desarrollo)
+        // await mongoose.connect('mongodb://localhost:27017/chat-app');
+        
+        console.log('✅ Conectado a MongoDB Atlas');
+    } catch (error) {
+        console.log('❌ Error conectando a MongoDB:', error.message);
+        console.log('🔄 Usando almacenamiento local como respaldo...');
+    }
+};
+
+connectDB();
+
+
+// Middleware - IMPORTANTE: Servir archivos estáticos CORRECTAMENTE
+app.use(cors());
+app.use(express.json());
+app.use(express.static(path.join(__dirname, '../frontend')));
+
+// Almacenamiento simple de usuarios y mensajes (en memoria)
+let users = [];
+let messages = [];
+
+// Almacenamiento en memoria como respaldo
+let usersInMemory = [];
+let messagesInMemory = [];
+
+// Función para registrar usuario
+const registerUser = async (userData) => {
+    try {
+        // Verificar si el usuario ya existe
+        const existingUser = await User.findOne({ username: userData.username });
+        if (existingUser) {
+            return { success: false, message: 'El usuario ya existe' };
+        }
+
+        // Crear nuevo usuario
+        const newUser = new User({
+            username: userData.username,
+            password: userData.password // En un proyecto real, esto debería estar encriptado
+        });
+
+        await newUser.save();
+        return { success: true, message: 'Usuario registrado exitosamente', user: newUser };
+    } catch (error) {
+        console.log('Error en registro MongoDB:', error);
+        // Respaldo en memoria
+        const existingUser = usersInMemory.find(u => u.username === userData.username);
+        if (existingUser) {
+            return { success: false, message: 'El usuario ya existe' };
+        }
+        
+        usersInMemory.push({
+            id: Date.now().toString(),
+            username: userData.username,
+            password: userData.password
+        });
+        
+        return { success: true, message: 'Usuario registrado (modo respaldo)' };
+    }
+};
+
+// Función para login
+const loginUser = async (userData) => {
+    try {
+        const user = await User.findOne({ 
+            username: userData.username, 
+            password: userData.password 
+        });
+        
+        if (user) {
+            // Actualizar último login
+            user.lastLogin = new Date();
+            await user.save();
+            return { success: true, user: user };
+        } else {
+            return { success: false, message: 'Usuario o contraseña incorrectos' };
+        }
+    } catch (error) {
+        console.log('Error en login MongoDB:', error);
+        // Respaldo en memoria
+        const user = usersInMemory.find(u => 
+            u.username === userData.username && 
+            u.password === userData.password
+        );
+        
+        if (user) {
+            return { success: true, user: user };
+        } else {
+            return { success: false, message: 'Usuario o contraseña incorrectos' };
+        }
+    }
+};
+
+// Ruta para registro de usuarios
+app.post('/api/register', async (req, res) => {
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+        return res.status(400).json({ success: false, message: 'Usuario y contraseña requeridos' });
+    }
+    
+    const result = await registerUser({ username, password });
+    res.json(result);
+});
+
+// Ruta para login
+app.post('/api/login', async (req, res) => {
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+        return res.status(400).json({ success: false, message: 'Usuario y contraseña requeridos' });
+    }
+    
+    const result = await loginUser({ username, password });
+    res.json(result);
+});
+
+// RUTAS PRINCIPALES - CORREGIDAS
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/login.html'));
+});
+
+app.get('/chat', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/chat.html'));
+});
+
+// Servir archivos CSS y JS correctamente
+app.get('/css/:filename', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/css', req.params.filename));
+});
+
+app.get('/js/:filename', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/js', req.params.filename));
+});
+
+// API de prueba
+app.get('/api/status', (req, res) => {
+    res.json({ 
+        status: 'Servidor funcionando ✅',
+        project: 'ChatApp UP - Programación IV',
+        users_online: users.length,
+        total_messages: messages.length,
+        frontend_path: path.join(__dirname, '../frontend')
+    });
+});
+
+// Manejo de conexiones Socket.io
+io.on('connection', (socket) => {
+    console.log('🟢 Usuario conectado:', socket.id);
+
+    // Evento cuando un usuario se logea
+    socket.on('user-login', (userData) => {
+        const user = {
+            id: socket.id,
+            username: userData.username,
+            status: 'online'
+        };
+        
+        // Remover si ya existe
+        users = users.filter(u => u.username !== userData.username);
+        users.push(user);
+        
+        console.log(`👤 Usuario ${userData.username} ha iniciado sesión`);
+        
+        // Notificar a todos los usuarios
+        io.emit('users-update', users);
+        io.emit('user-joined', userData.username);
+    });
+
+    // Evento para mensajes de chat
+    socket.on('send-message', (messageData) => {
+        console.log('📨 Mensaje recibido:', messageData);
+        
+        const message = {
+            id: Date.now(),
+            from: messageData.from,
+            to: messageData.to,
+            text: messageData.text,
+            timestamp: new Date().toLocaleTimeString()
+        };
+        
+        messages.push(message);
+        
+        // Reenviar el mensaje a todos los clientes
+        io.emit('new-message', message);
+    });
+
+    // Evento cuando usuario está escribiendo
+    socket.on('typing', (data) => {
+        socket.broadcast.emit('user-typing', data);
+    });
+
+    // Evento cuando usuario deja de escribir
+    socket.on('stop-typing', () => {
+        socket.broadcast.emit('user-stop-typing');
+    });
+
+    socket.on('disconnect', () => {
+        console.log('🔴 Usuario desconectado:', socket.id);
+        
+        // Remover usuario de la lista
+        const userIndex = users.findIndex(user => user.id === socket.id);
+        if (userIndex !== -1) {
+            const disconnectedUser = users[userIndex];
+            users.splice(userIndex, 1);
+            
+            // Notificar a los demás usuarios
+            io.emit('users-update', users);
+            io.emit('user-left', disconnectedUser.username);
+        }
+    });
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log('🚀 SERVIDOR INICIADO CORRECTAMENTE');
+    console.log('📍 Puerto:', PORT);
+    console.log('🌐 URL: http://localhost:' + PORT);
+    console.log('💬 Proyecto: Sistema de Chat en Tiempo Real');
+    console.log('🎓 Universidad Panamericana - Programación IV');
+    console.log('📁 Ruta frontend:', path.join(__dirname, '../frontend'));
+    console.log('=========================================');
+});
