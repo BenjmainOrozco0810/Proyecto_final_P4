@@ -3,8 +3,8 @@ const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
 const path = require('path');
-const connectDB = require('./config/database'); // ← NUEVA LÍNEA
-const User = require('./models/User');         // ← NUEVA LÍNEA
+const connectDB = require('./config/database'); // ← SOLO UNA IMPORTACIÓN
+const User = require('./models/User');
 
 const app = express();
 const server = http.createServer(app);
@@ -15,37 +15,13 @@ const io = socketIo(server, {
     }
 });
 
-// Conectar a la base de datos
-connectDB(); // ← NUEVA LÍNEA
-
-
-// Configuración de Base de Datos
-const connectDB = async () => {
-    try {
-        // Opción 1: MongoDB Atlas (recomendado para producción)
-        await mongoose.connect('mongodb+srv://usuario:contraseña@cluster0.tu-cluster.mongodb.net/chat-app?retryWrites=true&w=majority');
-        
-        // Opción 2: MongoDB local (para desarrollo)
-        // await mongoose.connect('mongodb://localhost:27017/chat-app');
-        
-        console.log('✅ Conectado a MongoDB Atlas');
-    } catch (error) {
-        console.log('❌ Error conectando a MongoDB:', error.message);
-        console.log('🔄 Usando almacenamiento local como respaldo...');
-    }
-};
-
-connectDB();
-
-
-// Middleware - IMPORTANTE: Servir archivos estáticos CORRECTAMENTE
+// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// Almacenamiento simple de usuarios y mensajes (en memoria)
-let users = [];
-let messages = [];
+// Conectar a la base de datos (SOLO UNA VEZ)
+connectDB();
 
 // Almacenamiento en memoria como respaldo
 let usersInMemory = [];
@@ -142,16 +118,17 @@ app.post('/api/login', async (req, res) => {
     res.json(result);
 });
 
-// RUTAS PRINCIPALES - CORREGIDAS
+// Ruta principal - Login
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/login.html'));
 });
 
+// Ruta del chat
 app.get('/chat', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/chat.html'));
 });
 
-// Servir archivos CSS y JS correctamente
+// Servir archivos CSS y JS
 app.get('/css/:filename', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/css', req.params.filename));
 });
@@ -165,9 +142,7 @@ app.get('/api/status', (req, res) => {
     res.json({ 
         status: 'Servidor funcionando ✅',
         project: 'ChatApp UP - Programación IV',
-        users_online: users.length,
-        total_messages: messages.length,
-        frontend_path: path.join(__dirname, '../frontend')
+        timestamp: new Date().toISOString()
     });
 });
 
@@ -183,14 +158,10 @@ io.on('connection', (socket) => {
             status: 'online'
         };
         
-        // Remover si ya existe
-        users = users.filter(u => u.username !== userData.username);
-        users.push(user);
-        
         console.log(`👤 Usuario ${userData.username} ha iniciado sesión`);
         
         // Notificar a todos los usuarios
-        io.emit('users-update', users);
+        io.emit('users-update', [user]);
         io.emit('user-joined', userData.username);
     });
 
@@ -205,8 +176,6 @@ io.on('connection', (socket) => {
             text: messageData.text,
             timestamp: new Date().toLocaleTimeString()
         };
-        
-        messages.push(message);
         
         // Reenviar el mensaje a todos los clientes
         io.emit('new-message', message);
@@ -224,17 +193,6 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
         console.log('🔴 Usuario desconectado:', socket.id);
-        
-        // Remover usuario de la lista
-        const userIndex = users.findIndex(user => user.id === socket.id);
-        if (userIndex !== -1) {
-            const disconnectedUser = users[userIndex];
-            users.splice(userIndex, 1);
-            
-            // Notificar a los demás usuarios
-            io.emit('users-update', users);
-            io.emit('user-left', disconnectedUser.username);
-        }
     });
 });
 
@@ -245,6 +203,5 @@ server.listen(PORT, () => {
     console.log('🌐 URL: http://localhost:' + PORT);
     console.log('💬 Proyecto: Sistema de Chat en Tiempo Real');
     console.log('🎓 Universidad Panamericana - Programación IV');
-    console.log('📁 Ruta frontend:', path.join(__dirname, '../frontend'));
     console.log('=========================================');
 });
