@@ -14,12 +14,29 @@ const logoutBtn = document.getElementById('logout-btn');
 // Variables de control
 let typingTimer;
 
-// Obtener usuario actual
-const currentUser = localStorage.getItem('currentUser') || 'UsuarioAnónimo';
-currentUserElement.textContent = currentUser;
+// Validar que el usuario está logueado
+const currentUser = localStorage.getItem('currentUser');
+if (!currentUser) {
+    alert('❌ Debes iniciar sesión primero');
+    window.location.href = '/';
+    throw new Error('Usuario no autenticado');
+}
+
+// Validar conexión con el servidor
+fetch('/api/status')
+    .then(response => response.json())
+    .then(data => {
+        console.log('✅ Servidor conectado:', data.status);
+    })
+    .catch(error => {
+        console.error('❌ Error conectando al servidor:', error);
+        alert('Error de conexión con el servidor');
+    });
 
 // Notificar al servidor que el usuario se ha unido
 socket.emit('user-login', { username: currentUser });
+
+
 
 // Función para agregar mensaje al chat
 function addMessage(messageData, isOwn = false) {
@@ -140,6 +157,7 @@ socket.on('user-typing', (data) => {
 socket.on('user-stop-typing', () => {
     typingIndicator.style.display = 'none';
 });
+
 
 // Inicializar
 console.log('Chat inicializado para:', currentUser);

@@ -28,11 +28,62 @@
         </form>
         
         <div class="project-info">
+            <p>¿No tienes cuenta? <a href="/register">Regístrate aquí</a></p>
             <p><strong>Proyecto Final:</strong> Sistema de Chat en Tiempo Real</p>
         </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="js/auth.js"></script>
+    <!-- SOLO este script -->
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username && password) {
+                // Mostrar loading
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = 'Verificando...';
+                submitBtn.disabled = true;
+                
+                try {
+                    const response = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username, password })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Login exitoso
+                        localStorage.setItem('currentUser', username);
+                        localStorage.setItem('userId', result.user.id);
+                        
+                        // Redirigir al chat
+                        window.location.href = '/chat';
+                    } else {
+                        // Login fallido
+                        alert('❌ ' + result.message);
+                        // Limpiar campos
+                        document.getElementById('password').value = '';
+                    }
+                } catch (error) {
+                    alert('❌ Error de conexión con el servidor');
+                    console.error('Error:', error);
+                } finally {
+                    // Restaurar botón
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                }
+            } else {
+                alert('Por favor ingresa usuario y contraseña');
+            }
+        });
+    </script>
 </body>
 </html>
