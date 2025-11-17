@@ -1,45 +1,101 @@
 // Conectar al servidor Socket.io
 const socket = io();
 
-// Elementos del DOM
-const messagesContainer = document.getElementById('messages-container');
-const messageInput = document.getElementById('message-input');
-const sendBtn = document.getElementById('send-btn');
-const usersList = document.getElementById('users-list');
-const onlineCount = document.getElementById('online-count');
-const currentUserElement = document.getElementById('current-user');
-const typingIndicator = document.getElementById('typing-indicator');
-const logoutBtn = document.getElementById('logout-btn');
+// Variables de estado
+let currentUser = localStorage.getItem('currentUser') || 'UsuarioAnónimo';
+let selectedUser = null;
 
-// Variables de control
-let typingTimer;
-
-// Validar que el usuario está logueado
-const currentUser = localStorage.getItem('currentUser');
-if (!currentUser) {
-    alert('❌ Debes iniciar sesión primero');
-    window.location.href = '/';
-    throw new Error('Usuario no autenticado');
-}
-
-// Validar conexión con el servidor
-fetch('/api/status')
-    .then(response => response.json())
-    .then(data => {
-        console.log('✅ Servidor conectado:', data.status);
-    })
-    .catch(error => {
-        console.error('❌ Error conectando al servidor:', error);
-        alert('Error de conexión con el servidor');
-    });
+// Inicializar
+document.getElementById('current-user').textContent = currentUser;
 
 // Notificar al servidor que el usuario se ha unido
 socket.emit('user-login', { username: currentUser });
 
+// Función para actualizar lista de usuarios
+function updateUsersList(users) {
+    const usersList = document.getElementById('users-list');
+    const onlineCount = document.getElementById('online-count');
+    
+    usersList.innerHTML = '';
+    const otherUsers = users.filter(user => user.username !== currentUser);
+    onlineCount.textContent = otherUsers.length;
+    
+    if (otherUsers.length === 0) {
+        usersList.innerHTML = '<div class="no-users">No hay otros usuarios conectados</div>';
+        return;
+    }
+    
+    otherUsers.forEach(user => {
+        const userElement = document.createElement('div');
+        userElement.className = `user-item ${selectedUser === user.username ? 'selected' : ''}`;
+        userElement.innerHTML = `
+            <div class="user-avatar">👤</div>
+            <div class="user-info">
+                <div class="user-name">${user.username}</div>
+                <div class="user-status">🟢 En línea</div>
+            </div>
+        `;
+        
+        userElement.addEventListener('click', () => {
+            selectUser(user.username);
+        });
+        
+        usersList.appendChild(userElement);
+    });
+}
 
+// Función para seleccionar un usuario para chatear
+function selectUser(username) {
+    selectedUser = username;
+    
+    // Actualizar UI de usuarios
+    document.querySelectorAll('.user-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+    
+    // Agregar selected al usuario clickeado
+    const userItems = document.querySelectorAll('.user-item');
+    userItems.forEach(item => {
+        if (item.querySelector('.user-name').textContent === username) {
+            item.classList.add('selected');
+        }
+    });
+    
+    // Actualizar título del chat
+    const chatHeader = document.querySelector('.chat-area .chat-header h3');
+    if (chatHeader) {
+        chatHeader.textContent = `Chat con ${username}`;
+    }
+    
+    // Limpiar mensajes actuales
+    const messagesContainer = document.getElementById('messages-container');
+    messagesContainer.innerHTML = '<div class="system-message">Cargando conversación...</div>';
+    
+    // Habilitar input
+    enableChatInput();
+    
+    // Solicitar historial del chat
+    socket.emit('get-chat-history', {
+        currentUser: currentUser,
+        otherUser: username
+    });
+}
+
+// Función para habilitar el input de mensaje
+function enableChatInput() {
+    const messageInput = document.getElementById('message-input');
+    const sendBtn = document.getElementById('send-btn');
+    
+    messageInput.disabled = false;
+    messageInput.placeholder = `Escribe un mensaje para ${selectedUser}...`;
+    sendBtn.disabled = false;
+    messageInput.focus();
+}
 
 // Función para agregar mensaje al chat
 function addMessage(messageData, isOwn = false) {
+    const messagesContainer = document.getElementById('messages-container');
+    
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isOwn ? 'own' : 'other'}`;
     
@@ -51,113 +107,108 @@ function addMessage(messageData, isOwn = false) {
         <div class="message-text">${messageData.text}</div>
     `;
     
+    // Si es el primer mensaje (system message), reemplazarlo
+    const systemMessage = messagesContainer.querySelector('.system-message');
+    if (systemMessage) {
+        systemMessage.remove();
+    }
+    
     messagesContainer.appendChild(messageDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-// Función para actualizar lista de usuarios
-function updateUsersList(users) {
-    usersList.innerHTML = '';
-    onlineCount.textContent = users.length;
-    
-    users.forEach(user => {
-        const userElement = document.createElement('div');
-        userElement.className = 'user-item user-online';
-        userElement.textContent = `${user.username} 🟢`;
-        usersList.appendChild(userElement);
-    });
-}
-
-// Función para enviar mensaje - CORREGIDA
+// Función para enviar mensaje
 function sendMessage() {
+    if (!selectedUser) {
+        alert('⚠️ Selecciona un usuario para chatear');
+        return;
+    }
+    
+    const messageInput = document.getElementById('message-input');
     const messageText = messageInput.value.trim();
     
     if (messageText) {
         const messageData = {
             from: currentUser,
-            to: 'all',
+            to: selectedUser,
             text: messageText
         };
         
-        // SOLO enviar al servidor - NO mostrar localmente
-        socket.emit('send-message', messageData);
+        socket.emit('send-private-message', messageData);
         messageInput.value = '';
-        
-        // Detener indicador de escritura
-        clearTimeout(typingTimer);
-        socket.emit('stop-typing');
+        messageInput.focus();
     }
 }
 
-// Event Listeners
-sendBtn.addEventListener('click', sendMessage);
-
-messageInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        sendMessage();
-    }
-});
-
-messageInput.addEventListener('input', () => {
-    // Notificar que está escribiendo
-    socket.emit('typing', { username: currentUser });
+// Configurar event listeners una sola vez
+function setupEventListeners() {
+    const sendBtn = document.getElementById('send-btn');
+    const messageInput = document.getElementById('message-input');
+    const logoutBtn = document.getElementById('logout-btn');
     
-    // Limpiar timer anterior
-    clearTimeout(typingTimer);
+    // Event listener para enviar mensaje
+    sendBtn.addEventListener('click', sendMessage);
     
-    // Configurar nuevo timer para detener indicador
-    typingTimer = setTimeout(() => {
-        socket.emit('stop-typing');
-    }, 1000);
-});
-
-logoutBtn.addEventListener('click', () => {
-    localStorage.removeItem('currentUser');
-    window.location.href = '/';
-});
+    // Event listener para Enter en el input
+    messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+    
+    // Event listener para logout
+    logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('currentUser');
+        window.location.href = '/';
+    });
+}
 
 // Socket Event Listeners
-socket.on('new-message', (messageData) => {
-    // SOLO agregar mensaje cuando llega del servidor
-    const isOwnMessage = messageData.from === currentUser;
-    addMessage(messageData, isOwnMessage);
-});
-
 socket.on('users-update', (users) => {
     updateUsersList(users);
 });
 
-socket.on('user-joined', (username) => {
-    if (username !== currentUser) {
-        const systemMessage = document.createElement('div');
-        systemMessage.className = 'system-message';
-        systemMessage.textContent = `🟢 ${username} se ha unido al chat`;
-        messagesContainer.appendChild(systemMessage);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+socket.on('new-private-message', (messageData) => {
+    console.log('📨 Mensaje privado recibido:', messageData);
+    
+    // Solo mostrar si el mensaje es para la conversación actual
+    if ((messageData.to === currentUser && messageData.from === selectedUser) ||
+        (messageData.from === currentUser && messageData.to === selectedUser)) {
+        
+        const isOwn = messageData.from === currentUser;
+        addMessage(messageData, isOwn);
     }
 });
 
-socket.on('user-left', (username) => {
-    if (username !== currentUser) {
-        const systemMessage = document.createElement('div');
-        systemMessage.className = 'system-message';
-        systemMessage.textContent = `🔴 ${username} ha dejado el chat`;
-        messagesContainer.appendChild(systemMessage);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+socket.on('chat-history', (data) => {
+    console.log('📜 Historial recibido para:', data.withUser);
+    
+    if (data.withUser === selectedUser) {
+        const messagesContainer = document.getElementById('messages-container');
+        messagesContainer.innerHTML = '';
+        
+        if (data.messages.length === 0) {
+            messagesContainer.innerHTML = '<div class="system-message">Inicia la conversación con ' + selectedUser + '</div>';
+        } else {
+            data.messages.forEach(message => {
+                const isOwn = message.from === currentUser;
+                addMessage(message, isOwn);
+            });
+        }
     }
 });
 
-socket.on('user-typing', (data) => {
-    if (data.username !== currentUser) {
-        typingIndicator.style.display = 'block';
-        typingIndicator.innerHTML = `<span>${data.username}</span> está escribiendo...`;
+// Inicializar cuando la página cargue
+document.addEventListener('DOMContentLoaded', function() {
+    // Verificar autenticación
+    if (!currentUser || currentUser === 'UsuarioAnónimo') {
+        alert('❌ Debes iniciar sesión primero');
+        window.location.href = '/';
+        return;
     }
+    
+    // Configurar event listeners
+    setupEventListeners();
+    
+    console.log('Chat inicializado para:', currentUser);
 });
-
-socket.on('user-stop-typing', () => {
-    typingIndicator.style.display = 'none';
-});
-
-
-// Inicializar
-console.log('Chat inicializado para:', currentUser);

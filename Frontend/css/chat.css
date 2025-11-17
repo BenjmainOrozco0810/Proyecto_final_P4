@@ -196,3 +196,72 @@ body {
     background: #ccc;
     cursor: not-allowed;
 }
+/* Estilos para chat privado */
+.user-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+}
+
+.user-item:hover {
+    background: #e9ecef;
+}
+
+.user-item.selected {
+    border-color: #667eea;
+    background: #e3f2fd;
+}
+
+.user-avatar {
+    font-size: 1.5rem;
+    margin-right: 0.75rem;
+}
+
+.user-info {
+    flex: 1;
+}
+
+.user-name {
+    font-weight: bold;
+    color: #333;
+}
+
+.user-status {
+    font-size: 0.8rem;
+    color: #28a745;
+}
+
+.no-users {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 1rem;
+}
+
+.chat-header {
+    padding: 1rem;
+    background: white;
+    border-bottom: 1px solid #ddd;
+}
+
+.chat-header h3 {
+    margin: 0;
+    color: #333;
+}
+
+/* Deshabilitar input cuando no hay usuario seleccionado */
+.message-input-container input:disabled {
+    background: #f8f9fa;
+    cursor: not-allowed;
+}
+
+.message-input-container button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}

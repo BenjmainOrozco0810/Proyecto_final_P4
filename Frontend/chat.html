@@ -11,7 +11,7 @@
         <!-- Header -->
         <header class="chat-header">
             <div class="header-left">
-                <h1>💬 ChatApp UP</h1>
+                <h1>ChatApp UP</h1>
                 <span class="user-status">Conectado como: <span id="current-user">Usuario</span></span>
             </div>
             <button id="logout-btn" class="logout-btn">Cerrar Sesión</button>
@@ -31,22 +31,18 @@
 
             <!-- Área principal de chat -->
             <main class="chat-area">
-                <!-- Mensajes -->
+                <div class="chat-header">
+                    <h3>Selecciona un usuario para chatear</h3>
+                </div>
                 <div id="messages-container" class="messages-container">
                     <div class="system-message">
-                        Bienvenido al chat. Los mensajes se muestran aquí.
+                        Selecciona un usuario de la lista para comenzar a chatear
                     </div>
                 </div>
-
-                <!-- Indicador de typing -->
-                <div id="typing-indicator" class="typing-indicator" style="display: none;">
-                    <span id="typing-user">Alguien</span> está escribiendo...
-                </div>
-
-                <!-- Input para enviar mensajes -->
+                <div id="typing-indicator" class="typing-indicator" style="display: none;"></div>
                 <div class="message-input-container">
-                    <input type="text" id="message-input" placeholder="Escribe tu mensaje..." maxlength="500">
-                    <button id="send-btn" class="send-btn">Enviar</button>
+                    <input type="text" id="message-input" placeholder="Selecciona un usuario primero..." disabled>
+                    <button id="send-btn" class="send-btn" disabled>Enviar</button>
                 </div>
             </main>
         </div>

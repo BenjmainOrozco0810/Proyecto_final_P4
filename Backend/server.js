@@ -181,62 +181,99 @@ app.get('/api/status', (req, res) => {
     });
 });
 
+// Almacenamiento de usuarios conectados y mensajes
+let connectedUsers = [];
+let privateMessages = [];
+
 // Manejo de conexiones Socket.io
 io.on('connection', (socket) => {
-    console.log('🟢 Usuario conectado:', socket.id);
+    console.log('🟢 Nueva conexión:', socket.id);
 
     // Evento cuando un usuario se logea
     socket.on('user-login', (userData) => {
         const user = {
             id: socket.id,
             username: userData.username,
+            socketId: socket.id,
             status: 'online'
         };
         
-        console.log(`👤 Usuario ${userData.username} ha iniciado sesión`);
+        // Remover si ya existe y agregar nuevo
+        connectedUsers = connectedUsers.filter(u => u.username !== userData.username);
+        connectedUsers.push(user);
+        
+        console.log(`👤 Usuario conectado: ${userData.username}`);
+        
+        // Unir al usuario a una sala con su nombre de usuario
+        socket.join(userData.username);
         
         // Notificar a todos los usuarios
-        io.emit('users-update', [user]);
-        io.emit('user-joined', userData.username);
+        io.emit('users-update', connectedUsers);
     });
 
-    // Evento para mensajes de chat
-    socket.on('send-message', (messageData) => {
-        console.log('📨 Mensaje recibido:', messageData);
+    // Evento para mensajes PRIVADOS
+    socket.on('send-private-message', (messageData) => {
+        console.log('📨 Mensaje privado:', {
+            from: messageData.from,
+            to: messageData.to,
+            text: messageData.text
+        });
         
         const message = {
             id: Date.now(),
             from: messageData.from,
             to: messageData.to,
             text: messageData.text,
-            timestamp: new Date().toLocaleTimeString()
+            timestamp: new Date().toLocaleTimeString(),
+            date: new Date().toLocaleDateString()
         };
         
-        // Reenviar el mensaje a todos los clientes
-        io.emit('new-message', message);
+        // Guardar mensaje
+        privateMessages.push(message);
+        
+        // Enviar mensaje al REMITENTE (para confirmación)
+        socket.emit('new-private-message', message);
+        
+        // Enviar mensaje al DESTINATARIO (si está conectado)
+        socket.to(messageData.to).emit('new-private-message', message);
+        
+        console.log(`✅ Mensaje enviado de ${messageData.from} a ${messageData.to}`);
     });
 
-    // Evento cuando usuario está escribiendo
-    socket.on('typing', (data) => {
-        socket.broadcast.emit('user-typing', data);
-    });
-
-    // Evento cuando usuario deja de escribir
-    socket.on('stop-typing', () => {
-        socket.broadcast.emit('user-stop-typing');
+    // Evento para obtener historial de chat con un usuario
+    socket.on('get-chat-history', (data) => {
+        const { currentUser, otherUser } = data;
+        
+        const history = privateMessages.filter(msg => 
+            (msg.from === currentUser && msg.to === otherUser) ||
+            (msg.from === otherUser && msg.to === currentUser)
+        ).sort((a, b) => a.id - b.id); // Ordenar por timestamp
+        
+        socket.emit('chat-history', {
+            withUser: otherUser,
+            messages: history
+        });
     });
 
     socket.on('disconnect', () => {
-        console.log('🔴 Usuario desconectado:', socket.id);
+        console.log('🔴 Desconexión:', socket.id);
+        
+        const userIndex = connectedUsers.findIndex(user => user.socketId === socket.id);
+        if (userIndex !== -1) {
+            const disconnectedUser = connectedUsers[userIndex];
+            connectedUsers.splice(userIndex, 1);
+            
+            io.emit('users-update', connectedUsers);
+        }
     });
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log('🚀 SERVIDOR INICIADO CORRECTAMENTE');
-    console.log('📍 Puerto:', PORT);
-    console.log('🌐 URL: http://localhost:' + PORT);
-    console.log('💬 Proyecto: Sistema de Chat en Tiempo Real');
-    console.log('🎓 Universidad Panamericana - Programación IV');
+    console.log('SERVIDOR INICIADO CORRECTAMENTE');
+    console.log('Puerto:', PORT);
+    console.log('URL: http://localhost:' + PORT);
+    console.log('Proyecto: Sistema de Chat en Tiempo Real');
+    console.log('Universidad Panamericana - Programación IV');
     console.log('=========================================');
 });
