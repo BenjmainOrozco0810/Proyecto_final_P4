@@ -1,0 +1,23 @@
+{
+  "name": "proyecto-chat-upana",
+  "version": "1.0.0",
+  "description": "Sistema de Chat en Tiempo Real - Universidad Panamericana",
+  "main": "backend/sever.js",
+  "scripts": {
+    "start": "node backend/sever.js",
+    "dev": "nodemon backend/sever.js",
+    "install-backend": "cd backend && npm install"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "cors": "^2.8.5",
+    "mongoose": "^7.5.0",
+    "dotenv": "^16.3.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "Tu nombre",
+  "license": "MIT"
+}
