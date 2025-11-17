@@ -3,32 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatApp UP - Registro</title>
+    <title>ChatApp UP | Crear Cuenta</title>
     <link rel="stylesheet" href="css/login.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-header">
-            <h1>💬 ChatApp UP</h1>
-            <p>Crear nueva cuenta</p>
-        </div>
-        
-        <form id="register-form" class="login-form">
-            <div class="input-group">
-                <label for="username">Usuario:</label>
-                <input type="text" id="username" required placeholder="Elige un usuario único">
+    <div class="background-animation"></div>
+    
+    <div class="container">
+        <div class="login-card">
+            <!-- Header -->
+            <div class="card-header">
+                <div class="logo">
+                    <div class="logo-icon">💬</div>
+                    <h1>ChatApp UP</h1>
+                </div>
+                <p class="subtitle">Crear nueva cuenta</p>
             </div>
-            
-            <div class="input-group">
-                <label for="password">Contraseña:</label>
-                <input type="password" id="password" required placeholder="Crea una contraseña segura">
+
+            <!-- Formulario -->
+            <form id="register-form" class="form">
+                <div class="input-group">
+                    <div class="input-icon">👤</div>
+                    <input type="text" id="username" required placeholder="Elige un nombre de usuario">
+                </div>
+                
+                <div class="input-group">
+                    <div class="input-icon">🔒</div>
+                    <input type="password" id="password" required placeholder="Crea una contraseña segura">
+                </div>
+                
+                <div class="password-strength">
+                    <div class="strength-bar">
+                        <div class="strength-fill" data-strength="0"></div>
+                    </div>
+                    <span class="strength-text">Seguridad de la contraseña</span>
+                </div>
+                
+                <button type="submit" class="submit-btn">
+                    <span class="btn-text">Crear Cuenta</span>
+                    <div class="btn-loader" style="display: none;">
+                        <div class="spinner"></div>
+                    </div>
+                </button>
+            </form>
+
+            <!-- Footer -->
+            <div class="card-footer">
+                <p>¿Ya tienes una cuenta? <a href="/" class="link">Inicia sesión aquí</a></p>
+                <div class="project-info">
+                    <span>Universidad Panamericana - Programación IV</span>
+                </div>
             </div>
-            
-            <button type="submit" class="login-btn">Crear Cuenta</button>
-        </form>
-        
-        <div class="project-info">
-            <p>¿Ya tienes cuenta? <a href="/">Inicia sesión aquí</a></p>
         </div>
     </div>
 
@@ -38,10 +64,18 @@
             
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
+            const submitBtn = this.querySelector('.submit-btn');
+            const btnText = submitBtn.querySelector('.btn-text');
+            const btnLoader = submitBtn.querySelector('.btn-loader');
             
             if (username && password) {
+                // Mostrar loading
+                btnText.style.display = 'none';
+                btnLoader.style.display = 'flex';
+                submitBtn.disabled = true;
+                
                 try {
-                    const response = await fetch(window.location.origin + '/api/register', {
+                    const response = await fetch('/api/register', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -52,20 +86,69 @@
                     const result = await response.json();
                     
                     if (result.success) {
-                        alert('✅ Cuenta creada exitosamente. Redirigiendo al login...');
+                        // Animación de éxito
+                        submitBtn.style.background = '#10b981';
+                        btnLoader.innerHTML = '✅';
+                        
                         setTimeout(() => {
                             window.location.href = '/';
-                        }, 1500);
+                        }, 1000);
                     } else {
-                        alert('❌ Error: ' + result.message);
+                        showError(result.message);
                     }
                 } catch (error) {
-                    alert('❌ Error de conexión: ' + error.message);
+                    showError('Error de conexión con el servidor');
+                } finally {
+                    // Restaurar botón
+                    setTimeout(() => {
+                        btnText.style.display = 'block';
+                        btnLoader.style.display = 'none';
+                        submitBtn.disabled = false;
+                        submitBtn.style.background = '';
+                    }, 1500);
                 }
             } else {
-                alert('Por favor completa todos los campos');
+                showError('Por favor completa todos los campos');
             }
         });
+
+        // Efecto de fuerza de contraseña
+        document.getElementById('password').addEventListener('input', function() {
+            const password = this.value;
+            const strengthFill = document.querySelector('.strength-fill');
+            const strengthText = document.querySelector('.strength-text');
+            
+            let strength = 0;
+            if (password.length > 6) strength += 25;
+            if (password.length > 10) strength += 25;
+            if (/[A-Z]/.test(password)) strength += 25;
+            if (/[0-9]/.test(password)) strength += 25;
+            
+            strengthFill.style.width = strength + '%';
+            strengthFill.setAttribute('data-strength', strength);
+            
+            if (strength < 50) {
+                strengthFill.style.background = '#ef4444';
+                strengthText.textContent = 'Contraseña débil';
+            } else if (strength < 75) {
+                strengthFill.style.background = '#f59e0b';
+                strengthText.textContent = 'Contraseña media';
+            } else {
+                strengthFill.style.background = '#10b981';
+                strengthText.textContent = 'Contraseña fuerte';
+            }
+        });
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-notification';
+            errorDiv.innerHTML = `<span>❌ ${message}</span>`;
+            document.body.appendChild(errorDiv);
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 4000);
+        }
     </script>
 </body>
 </html>
