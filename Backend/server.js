@@ -5,6 +5,7 @@ const cors = require('cors');
 const path = require('path');
 const connectDB = require('./config/database'); // ← SOLO UNA IMPORTACIÓN
 const User = require('./models/User');
+require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);
