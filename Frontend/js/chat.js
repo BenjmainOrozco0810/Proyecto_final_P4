@@ -1,6 +1,7 @@
 // Conectar al servidor Socket.io
-const socket = io();
-
+const socket = io(window.location.origin, {
+    transports: ['websocket', 'polling']
+});
 // Variables de estado
 let currentUser = localStorage.getItem('currentUser') || 'UsuarioAnónimo';
 let selectedUser = null;
