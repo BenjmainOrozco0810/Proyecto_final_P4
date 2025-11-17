@@ -3,9 +3,12 @@ const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
 const path = require('path');
-const connectDB = require('./config/database'); // ← SOLO UNA IMPORTACIÓN
-const User = require('./models/User');
+const mongoose = require('mongoose');
 require('dotenv').config();
+
+// Importar modelos
+const User = require('./models/User');
+const Message = require('./models/Message');
 
 const app = express();
 const server = http.createServer(app);
@@ -17,139 +20,62 @@ const io = socketIo(server, {
 });
 
 // Middleware
-app.use(cors({
-    origin: function (origin, callback) {
-        // Permitir todas las origins en desarrollo
-        if (!origin || process.env.NODE_ENV !== 'production') {
-            return callback(null, true);
-        }
-        
-        // En producción, permitir tu dominio de Render
-        const allowedOrigins = [
-            'https://tu-app.render.com',
-            'http://localhost:3000'
-        ];
-        
-        if (allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error('No permitido por CORS'));
-        }
-    },
-    credentials: true
-}));
+app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../frontend')));
-// Middleware para verificar autenticación en rutas protegidas
-const requireAuth = (req, res, next) => {
-    // En una aplicación real usaríamos sessions o JWT
-    // Por ahora, permitimos el acceso pero verificamos en el frontend
-    next();
+app.use(express.static(path.join(__dirname, 'frontend')));
+
+// Conectar a MongoDB
+const connectDB = async () => {
+    try {
+        const connectionString = process.env.MONGODB_URI || 'mongodb+srv://chat-app-user:gMM9DKypRhNVHjg9@cluster0.tucluster.mongodb.net/chat-app?retryWrites=true&w=majority';
+        
+        await mongoose.connect(connectionString, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
+        
+        console.log('✅ Conectado a MongoDB Atlas exitosamente');
+        
+        // Estadísticas
+        const userCount = await User.countDocuments();
+        const messageCount = await Message.countDocuments();
+        console.log(`📊 Usuarios: ${userCount}, Mensajes: ${messageCount}`);
+        
+    } catch (error) {
+        console.log('❌ Error conectando a MongoDB Atlas:', error.message);
+    }
 };
 
-// Aplicar a rutas protegidas
-app.get('/chat', requireAuth, (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/chat.html'));
-});
-
-// Conectar a la base de datos (SOLO UNA VEZ)
 connectDB();
 
-// Almacenamiento en memoria como respaldo
-let usersInMemory = [];
-let messagesInMemory = [];
+// Almacenamiento en memoria de usuarios conectados
+let connectedUsers = [];
 
-// Función para registrar usuario
-const registerUser = async (userData) => {
-    try {
-        // Verificar si el usuario ya existe
-        const existingUser = await User.findOne({ username: userData.username });
-        if (existingUser) {
-            return { success: false, message: 'El usuario ya existe' };
-        }
-
-        // Crear nuevo usuario
-        const newUser = new User({
-            username: userData.username,
-            password: userData.password // En un proyecto real, esto debería estar encriptado
-        });
-
-        await newUser.save();
-        return { success: true, message: 'Usuario registrado exitosamente', user: newUser };
-    } catch (error) {
-        console.log('Error en registro MongoDB:', error);
-        // Respaldo en memoria
-        const existingUser = usersInMemory.find(u => u.username === userData.username);
-        if (existingUser) {
-            return { success: false, message: 'El usuario ya existe' };
-        }
-        
-        usersInMemory.push({
-            id: Date.now().toString(),
-            username: userData.username,
-            password: userData.password
-        });
-        
-        return { success: true, message: 'Usuario registrado (modo respaldo)' };
-    }
-};
-
-// Función para login - VERSIÓN CORREGIDA (sin modo respaldo)
-const loginUser = async (userData) => {
-    try {
-        console.log('🔐 Intentando login para:', userData.username);
-        
-        const user = await User.findOne({ 
-            username: userData.username, 
-            password: userData.password 
-        });
-        
-        if (user) {
-            // Actualizar último login
-            user.lastLogin = new Date();
-            await user.save();
-            
-            console.log('✅ Login exitoso para:', userData.username);
-            return { 
-                success: true, 
-                user: {
-                    username: user.username,
-                    id: user._id
-                } 
-            };
-        } else {
-            console.log('❌ Login fallido para:', userData.username);
-            return { 
-                success: false, 
-                message: 'Usuario o contraseña incorrectos' 
-            };
-        }
-    } catch (error) {
-        console.log('❌ Error en login MongoDB:', error);
-        return { 
-            success: false, 
-            message: 'Error del servidor. Intenta más tarde.' 
-        };
-    }
-};
-// Ruta para registro de usuarios
-app.post('/api/register', async (req, res) => {
-    const { username, password } = req.body;
-    
-    if (!username || !password) {
-        return res.status(400).json({ success: false, message: 'Usuario y contraseña requeridos' });
-    }
-    
-    const result = await registerUser({ username, password });
-    res.json(result);
+// Rutas
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend/login.html'));
 });
 
-// Ruta para login
-// Ruta para login - MEJORADA
-app.post('/api/login', async (req, res) => {
+app.get('/chat', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend/chat.html'));
+});
+
+app.get('/register', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend/register.html'));
+});
+
+// Servir archivos estáticos
+app.get('/css/:filename', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend/css', req.params.filename));
+});
+
+app.get('/js/:filename', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend/js', req.params.filename));
+});
+
+// API Routes
+app.post('/api/register', async (req, res) => {
     const { username, password } = req.body;
-    
-    console.log('📨 Solicitud de login recibida:', { username });
     
     if (!username || !password) {
         return res.status(400).json({ 
@@ -159,58 +85,96 @@ app.post('/api/login', async (req, res) => {
     }
     
     try {
-        const result = await loginUser({ username, password });
-        res.json(result);
+        // Verificar si el usuario ya existe
+        const existingUser = await User.findOne({ username: username });
+        if (existingUser) {
+            return res.json({ 
+                success: false, 
+                message: 'El usuario ya existe' 
+            });
+        }
+
+        // Crear nuevo usuario
+        const newUser = new User({
+            username: username,
+            password: password
+        });
+
+        await newUser.save();
+        
+        res.json({ 
+            success: true, 
+            message: 'Usuario registrado exitosamente',
+            user: {
+                username: newUser.username,
+                id: newUser._id
+            }
+        });
     } catch (error) {
-        console.error('💥 Error en endpoint login:', error);
+        console.error('Error en registro:', error);
         res.status(500).json({ 
             success: false, 
-            message: 'Error interno del servidor' 
+            message: 'Error del servidor' 
         });
     }
 });
 
-// Ruta principal - Login
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/login.html'));
-});7
-// Ruta para página de registro
-app.get('/register', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/register.html'));
+app.post('/api/login', async (req, res) => {
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Usuario y contraseña requeridos' 
+        });
+    }
+    
+    try {
+        const user = await User.findOne({ 
+            username: username, 
+            password: password 
+        });
+        
+        if (user) {
+            // Actualizar último login
+            user.lastLogin = new Date();
+            await user.save();
+            
+            res.json({ 
+                success: true, 
+                user: {
+                    username: user.username,
+                    id: user._id
+                }
+            });
+        } else {
+            res.json({ 
+                success: false, 
+                message: 'Usuario o contraseña incorrectos' 
+            });
+        }
+    } catch (error) {
+        console.error('Error en login:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error del servidor' 
+        });
+    }
 });
 
-// Ruta del chat
-app.get('/chat', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/chat.html'));
-});
-
-// Servir archivos CSS y JS
-app.get('/css/:filename', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/css', req.params.filename));
-});
-
-app.get('/js/:filename', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/js', req.params.filename));
-});
-
-// API de prueba
 app.get('/api/status', (req, res) => {
     res.json({ 
         status: 'Servidor funcionando ✅',
         project: 'ChatApp UP - Programación IV',
-        timestamp: new Date().toISOString()
+        users_online: connectedUsers.length,
+        environment: process.env.NODE_ENV || 'development'
     });
 });
 
-// Almacenamiento de usuarios conectados y mensajes
-let connectedUsers = [];
-let privateMessages = [];
-
-// Manejo de conexiones Socket.io
+// Socket.io
 io.on('connection', (socket) => {
-    console.log('🟢 Nueva conexión:', socket.id);
+    console.log('🟢 Usuario conectado:', socket.id);
 
-    // Evento cuando un usuario se logea
     socket.on('user-login', (userData) => {
         const user = {
             id: socket.id,
@@ -223,61 +187,99 @@ io.on('connection', (socket) => {
         connectedUsers = connectedUsers.filter(u => u.username !== userData.username);
         connectedUsers.push(user);
         
-        console.log(`👤 Usuario conectado: ${userData.username}`);
+        console.log(`👤 Usuario ${userData.username} ha iniciado sesión`);
         
-        // Unir al usuario a una sala con su nombre de usuario
+        // Unir al usuario a una sala con su nombre
         socket.join(userData.username);
         
         // Notificar a todos los usuarios
         io.emit('users-update', connectedUsers);
     });
 
-    // Evento para mensajes PRIVADOS
-    socket.on('send-private-message', (messageData) => {
-        console.log('📨 Mensaje privado:', {
-            from: messageData.from,
-            to: messageData.to,
-            text: messageData.text
-        });
-        
-        const message = {
-            id: Date.now(),
-            from: messageData.from,
-            to: messageData.to,
-            text: messageData.text,
-            timestamp: new Date().toLocaleTimeString(),
-            date: new Date().toLocaleDateString()
-        };
-        
-        // Guardar mensaje
-        privateMessages.push(message);
-        
-        // Enviar mensaje al REMITENTE (para confirmación)
-        socket.emit('new-private-message', message);
-        
-        // Enviar mensaje al DESTINATARIO (si está conectado)
-        socket.to(messageData.to).emit('new-private-message', message);
-        
-        console.log(`✅ Mensaje enviado de ${messageData.from} a ${messageData.to}`);
+    // Mensajes privados
+    socket.on('send-private-message', async (messageData) => {
+        try {
+            console.log('📨 Mensaje privado:', {
+                from: messageData.from,
+                to: messageData.to,
+                text: messageData.text
+            });
+            
+            // Guardar en MongoDB
+            const message = new Message({
+                from: messageData.from,
+                to: messageData.to,
+                text: messageData.text,
+                timestamp: new Date().toLocaleTimeString(),
+                date: new Date().toLocaleDateString()
+            });
+            
+            const savedMessage = await message.save();
+            console.log('💾 Mensaje guardado en MongoDB');
+            
+            const messageResponse = {
+                id: savedMessage._id,
+                from: savedMessage.from,
+                to: savedMessage.to,
+                text: savedMessage.text,
+                timestamp: savedMessage.timestamp,
+                date: savedMessage.date
+            };
+            
+            // Enviar al remitente (confirmación)
+            socket.emit('new-private-message', messageResponse);
+            
+            // Enviar al destinatario
+            socket.to(messageData.to).emit('new-private-message', messageResponse);
+            
+        } catch (error) {
+            console.error('❌ Error guardando mensaje:', error);
+            socket.emit('message-error', { 
+                error: 'No se pudo guardar el mensaje' 
+            });
+        }
     });
 
-    // Evento para obtener historial de chat con un usuario
-    socket.on('get-chat-history', (data) => {
-        const { currentUser, otherUser } = data;
-        
-        const history = privateMessages.filter(msg => 
-            (msg.from === currentUser && msg.to === otherUser) ||
-            (msg.from === otherUser && msg.to === currentUser)
-        ).sort((a, b) => a.id - b.id); // Ordenar por timestamp
-        
-        socket.emit('chat-history', {
-            withUser: otherUser,
-            messages: history
-        });
+    // Obtener historial de chat
+    socket.on('get-chat-history', async (data) => {
+        try {
+            const { currentUser, otherUser } = data;
+            
+            const history = await Message.find({
+                $or: [
+                    { from: currentUser, to: otherUser },
+                    { from: otherUser, to: currentUser }
+                ]
+            })
+            .sort({ createdAt: 1 })
+            .limit(100)
+            .lean();
+            
+            const formattedHistory = history.map(msg => ({
+                id: msg._id,
+                from: msg.from,
+                to: msg.to,
+                text: msg.text,
+                timestamp: msg.timestamp,
+                date: msg.date
+            }));
+            
+            socket.emit('chat-history', {
+                withUser: otherUser,
+                messages: formattedHistory
+            });
+            
+        } catch (error) {
+            console.error('❌ Error obteniendo historial:', error);
+            socket.emit('chat-history', {
+                withUser: data.otherUser,
+                messages: []
+            });
+        }
     });
 
     socket.on('disconnect', () => {
-        console.log('🔴 Desconexión:', socket.id);
+        console.log('🔴 Usuario desconectado:', socket.id);
         
         const userIndex = connectedUsers.findIndex(user => user.socketId === socket.id);
         if (userIndex !== -1) {
@@ -291,10 +293,10 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log('SERVIDOR INICIADO CORRECTAMENTE');
-    console.log('Puerto:', PORT);
-    console.log('URL: http://localhost:' + PORT);
-    console.log('Proyecto: Sistema de Chat en Tiempo Real');
-    console.log('Universidad Panamericana - Programación IV');
+    console.log('🚀 SERVIDOR INICIADO CORRECTAMENTE');
+    console.log('📍 Puerto:', PORT);
+    console.log('🌐 URL: http://localhost:' + PORT);
+    console.log('💬 Proyecto: Sistema de Chat en Tiempo Real');
+    console.log('🎓 Universidad Panamericana - Programación IV');
     console.log('=========================================');
 });
