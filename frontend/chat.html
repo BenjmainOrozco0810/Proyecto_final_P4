@@ -694,23 +694,7 @@
                     </button>
                 </div>
             </main>
-            
-            <aside class="detail-sidebar">
-                <div class="contact-info-card">
-                    <div class="contact-avatar-large" id="contact-avatar-detail-initial">U</div>
-                    <div class="contact-name-detail" id="contact-name-detail">Selecciona un chat</div>
-                    <div class="contact-email" id="contact-email-detail">Para ver detalles del contacto</div>
-                    <div class="contact-role" style="color: var(--primary-color);" id="contact-role-detail">Usuario de ChatApp UP</div>
-                </div>
-                
-                <div class="detail-card">
-                    <h4>Información del Chat</h4>
-                    <div style="font-size: 0.9rem; color: var(--text-light);" id="chat-info-detail">
-                        Los mensajes están encriptados y son privados entre los usuarios.
-                    </div>
-                </div>
-            </aside>
-            
+                     
         </div>
     </div>
 
@@ -844,6 +828,34 @@
                 currentUser: currentUser,
                 otherUser: username
             });
+        }
+        // Función para agregar mensaje al chat - SOLO usar timestamp del servidor
+        function addMessage(messageData, isOwn = false) {
+            // Remover mensajes de sistema
+            const welcomeMessage = messagesContainer.querySelector('.welcome-message');
+            const systemMessage = messagesContainer.querySelector('.system-message');
+            if (welcomeMessage) welcomeMessage.remove();
+            if (systemMessage && systemMessage.textContent.includes('Cargando')) systemMessage.remove();
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isOwn ? 'user' : 'other'}`;
+            
+            const userInitial = messageData.from.charAt(0).toUpperCase();
+            
+            // USAR SIEMPRE EL TIMESTAMP DEL SERVIDOR
+            // Si no viene timestamp del servidor, mostrar "Ahora"
+            const timestamp = messageData.timestamp || 'Ahora';
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar" style="background-color: ${isOwn ? '#4361ee' : '#6a0dad'};">${userInitial}</div>
+                <div class="message-content-wrapper">
+                    <div class="message-content">${messageData.text}</div>
+                    <span class="message-time">${timestamp}</span>
+                </div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
         // Función para habilitar el input de mensaje
