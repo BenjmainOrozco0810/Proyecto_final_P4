@@ -395,6 +395,7 @@
             display: flex;
             align-items: center;
             height: 40px;
+            display: none;
         }
         
         .typing-indicator-dot {
@@ -473,6 +474,11 @@
             transition: background-color 0.3s;
         }
         
+        .send-btn:disabled {
+            background-color: var(--text-light);
+            cursor: not-allowed;
+        }
+        
         /* --- Columna 3: Sidebar de Detalles (Información del Contacto) --- */
         .detail-sidebar {
             width: 300px;
@@ -529,6 +535,30 @@
             cursor: pointer;
             transition: background-color 0.2s;
             width: 100%;
+        }
+
+        /* Mensaje de bienvenida */
+        .welcome-message {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+
+        .welcome-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .welcome-message h3 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .welcome-message p {
+            font-size: 1rem;
+            opacity: 0.7;
         }
 
         /* --- Responsive Design (Asegura la funcionalidad) --- */
@@ -605,58 +635,21 @@
             
             <aside class="sidebar-conversations">
                 <div class="profile-card">
-                    <div class="profile-avatar" id="profile-initial">B</div>
-                    <div class="profile-name" id="current-user-name">Bill Bradford</div>
+                    <div class="profile-avatar" id="profile-initial">U</div>
+                    <div class="profile-name" id="current-user-name">Usuario</div>
                     <div class="profile-role">Programación IV - UP</div>
                     <div class="profile-status"><i class="fas fa-circle" style="font-size: 0.6em; color: var(--online); margin-right: 5px;"></i>Activo</div>
                 </div>
 
                 <div class="sidebar-contacts-header">
-                    <i class="fas fa-users"></i> Contactos
+                    <i class="fas fa-users"></i> Contactos Conectados
                 </div>
                 <div id="users-list" class="sidebar-list">
-                    
-                    <div class="conversation-item active" data-username="HenryBoyd">
-                        <div class="conv-avatar" style="background-color: #f59e0b;">H</div>
-                        <div class="conv-info">
-                            <div class="conv-name">Henry Boyd</div>
-                            <div class="conv-status-indicator">
-                                <span class="status-dot online"></span>
-                                <span>En línea</span>
-                            </div>
+                    <div class="welcome-message">
+                        <div class="welcome-icon">
+                            <i class="fas fa-users"></i>
                         </div>
-                        <div class="conv-meta">
-                            <span class="time-ago">9h ago</span>
-                        </div>
-                    </div>
-
-                    <div class="conversation-item" data-username="MarthaCurtis">
-                        <div class="conv-avatar" style="background-color: #ef4444;">M</div>
-                        <div class="conv-info">
-                            <div class="conv-name">Martha Curtis</div>
-                            <div class="conv-status-indicator">
-                                <span class="status-dot online"></span>
-                                <span>En línea</span>
-                            </div>
-                        </div>
-                        <div class="conv-meta">
-                            <span class="unread-count">2</span>
-                            <span class="time-ago">1d ago</span>
-                        </div>
-                    </div>
-
-                    <div class="conversation-item" data-username="CarlosLopez">
-                        <div class="conv-avatar" style="background-color: #3b82f6;">C</div>
-                        <div class="conv-info">
-                            <div class="conv-name">Carlos López</div>
-                            <div class="conv-status-indicator">
-                                <span class="status-dot offline"></span>
-                                <span>Desconectado</span>
-                            </div>
-                        </div>
-                        <div class="conv-meta">
-                            <span class="time-ago">2d ago</span>
-                        </div>
+                        <p>Selecciona un usuario para comenzar a chatear</p>
                     </div>
                 </div>
             </aside>
@@ -665,8 +658,8 @@
                 
                 <div class="chat-area-header">
                     <div class="chat-title">
-                        <h3 id="chat-header-name">Chat con Henry Boyd</h3>
-                        <div class="status-text">Activo ahora</div>
+                        <h3 id="chat-header-name">ChatApp UP</h3>
+                        <div class="status-text" id="active-chat-status">Selecciona un contacto para chatear</div>
                     </div>
                     <div class="chat-actions">
                         <button><i class="fas fa-search"></i></button>
@@ -674,154 +667,334 @@
                 </div>
                 
                 <div id="messages-container" class="messages-container">
-                    <div class="message other">
-                        <div class="message-avatar">H</div>
-                        <div class="message-content-wrapper">
-                            <div class="message-content">Hi Henry!</div>
-                            <span class="message-time">9h ago</span>
+                    <div class="welcome-message">
+                        <div class="welcome-icon">
+                            <i class="fas fa-comments"></i>
                         </div>
-                    </div>
-
-                    <div class="message user">
-                        <div class="message-avatar" style="background-color: #3b82f6;">B</div>
-                        <div class="message-content-wrapper">
-                            <div class="message-content">How can I help you today?</div>
-                            <span class="message-time">9h ago</span>
-                        </div>
+                        <h3>Bienvenido al Chat</h3>
+                        <p>Selecciona un usuario de la lista para comenzar a chatear</p>
                     </div>
                 </div>
-                
-                <div id="typing-indicator" class="typing-indicator-container" style="display: none;">
-                    <span id="typing-user-name" style="margin-right: 10px;">Henry Boyd</span> está escribiendo
+
+                <!-- Indicador de typing -->
+                <div id="typing-indicator" class="typing-indicator-container">
                     <div class="typing-indicator-dot"></div>
                     <div class="typing-indicator-dot"></div>
                     <div class="typing-indicator-dot"></div>
+                    <span style="margin-left: 10px;" id="typing-user">Alguien</span> está escribiendo...
                 </div>
                 
                 <div class="message-input-container">
                     <div class="input-group-send">
-                        <input type="text" id="message-input" placeholder="Enter your message here">
+                        <input type="text" id="message-input" placeholder="Selecciona un usuario primero..." disabled>
                         <button class="audio-btn"><i class="fas fa-microphone"></i></button>
                     </div>
-                    <button id="send-btn" class="send-btn">
-                        Send
+                    <button id="send-btn" class="send-btn" disabled>
+                        <i class="fas fa-paper-plane"></i>
                     </button>
                 </div>
             </main>
             
             <aside class="detail-sidebar">
                 <div class="contact-info-card">
-                    <div class="contact-avatar-large" id="contact-avatar-detail-initial">H</div>
-                    <div class="contact-name-detail" id="contact-name-detail">Henry Boyd</div>
-                    <div class="contact-email">henryboyd@gmail.com</div>
-                    <div class="contact-role" style="color: var(--primary-color);">Lead UX/UI Designer</div>
-                    <button class="logout-btn-detail" style="margin-top: 15px;">
-                        Archive
-                    </button>
+                    <div class="contact-avatar-large" id="contact-avatar-detail-initial">U</div>
+                    <div class="contact-name-detail" id="contact-name-detail">Selecciona un chat</div>
+                    <div class="contact-email" id="contact-email-detail">Para ver detalles del contacto</div>
+                    <div class="contact-role" style="color: var(--primary-color);" id="contact-role-detail">Usuario de ChatApp UP</div>
                 </div>
                 
                 <div class="detail-card">
-                    <h4>Archivos compartidos</h4>
-                    <div style="font-size: 0.9rem; color: var(--text-light);">No hay archivos recientes.</div>
+                    <h4>Información del Chat</h4>
+                    <div style="font-size: 0.9rem; color: var(--text-light);" id="chat-info-detail">
+                        Los mensajes están encriptados y son privados entre los usuarios.
+                    </div>
                 </div>
             </aside>
             
         </div>
     </div>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script>
+        // Conectar al servidor Socket.io
+        const socket = io({
+            transports: ['websocket', 'polling']
+        });
+
+        // Elementos del DOM
+        const messagesContainer = document.getElementById('messages-container');
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        const usersList = document.getElementById('users-list');
+        const currentUserHeader = document.getElementById('current-user-header');
+        const currentUserName = document.getElementById('current-user-name');
+        const profileInitial = document.getElementById('profile-initial');
+        const chatHeaderName = document.getElementById('chat-header-name');
+        const activeChatStatus = document.getElementById('active-chat-status');
+        const contactNameDetail = document.getElementById('contact-name-detail');
+        const contactAvatarDetailInitial = document.getElementById('contact-avatar-detail-initial');
+        const contactEmailDetail = document.getElementById('contact-email-detail');
+        const contactRoleDetail = document.getElementById('contact-role-detail');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const typingUser = document.getElementById('typing-user');
+        const logoutBtn = document.getElementById('logout-btn-header');
+
+        // Variables de estado
+        let currentUser = localStorage.getItem('currentUser') || 'Usuario';
+        let selectedUser = null;
+        let typingTimer;
+
+        // Inicializar
         document.addEventListener('DOMContentLoaded', function() {
-            // Inicializar el usuario actual y el nombre del perfil
-            const currentUser = localStorage.getItem('currentUser') || 'Bill Bradford'; // Nombre por defecto
             const userInitial = currentUser.charAt(0).toUpperCase();
             
-            document.getElementById('current-user-header').textContent = currentUser; // En el header global
-            document.getElementById('current-user-name').textContent = currentUser; // En el profile card
-            document.getElementById('profile-initial').textContent = userInitial; // Avatar en profile card
+            currentUserHeader.textContent = currentUser;
+            currentUserName.textContent = currentUser;
+            profileInitial.textContent = userInitial;
 
-            const userItems = document.querySelectorAll('.conversation-item'); 
-            const messageInput = document.getElementById('message-input');
-            const sendBtn = document.getElementById('send-btn');
-            const messagesContainer = document.getElementById('messages-container');
-            const chatHeaderName = document.getElementById('chat-header-name');
-            const contactNameDetail = document.getElementById('contact-name-detail');
-            const contactAvatarDetailInitial = document.getElementById('contact-avatar-detail-initial');
-            const typingIndicator = document.getElementById('typing-indicator');
-            const typingUserName = document.getElementById('typing-user-name');
+            // Notificar al servidor que el usuario se ha unido
+            socket.emit('user-login', { username: currentUser });
 
+            // Verificar autenticación
+            if (!currentUser || currentUser === 'Usuario') {
+                alert('❌ Debes iniciar sesión primero');
+                window.location.href = '/';
+                return;
+            }
+        });
 
-            // Lógica para cerrar sesión (Simulación)
-            document.getElementById('logout-btn-header').addEventListener('click', function() { // Usar el nuevo botón del header
-                localStorage.removeItem('currentUser');
-                localStorage.removeItem('userId');
-                window.location.href = '/'; 
-            });
-
-            // --- LOGICA DE SELECCIÓN DE USUARIO (ADAPTADA DE TU CÓDIGO ORIGINAL) ---
-            userItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    userItems.forEach(user => user.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    const userName = this.querySelector('.conv-name').textContent;
-                    const contactInitial = userName.charAt(0).toUpperCase();
-                    
-                    // Actualizar el header del chat y la barra de detalles
-                    chatHeaderName.textContent = `Chat con ${userName}`;
-                    contactNameDetail.textContent = userName;
-                    contactAvatarDetailInitial.textContent = contactInitial;
-                    
-                    messageInput.disabled = false;
-                    messageInput.placeholder = `Enter your message to ${userName}`;
-                    sendBtn.disabled = false;
-                    
-                    // Actualizar el nombre del usuario escribiendo
-                    typingUserName.textContent = userName;
-
-                    // Simular que el typing indicator aparece y desaparece
-                    typingIndicator.style.display = 'flex';
-                    setTimeout(() => {
-                        typingIndicator.style.display = 'none';
-                    }, 3000); // Se oculta después de 3 segundos
-                    
-                    // Limpiar mensajes anteriores y simular inicio de chat
-                    messagesContainer.innerHTML = `
-                        <div style="text-align: center; color: var(--text-light); font-size: 0.8rem; padding: 10px;">
-                            Has iniciado una conversación con ${userName}
-                        </div>
-                    `;
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                });
-            });
+        // Función para actualizar lista de usuarios
+        function updateUsersList(users) {
+            usersList.innerHTML = '';
+            const otherUsers = users.filter(user => user.username !== currentUser);
             
-            // --- LOGICA DE ENVÍO DE MENSAJE (TU CÓDIGO ORIGINAL) ---
-            sendBtn.addEventListener('click', sendMessage);
-            messageInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    sendMessage();
-                }
-            });
+            if (otherUsers.length === 0) {
+                usersList.innerHTML = `
+                    <div class="welcome-message">
+                        <i class="fas fa-users" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <p>No hay otros usuarios conectados</p>
+                    </div>
+                `;
+                return;
+            }
             
-            function sendMessage() {
-                const message = messageInput.value.trim();
-                if (message === '') return;
+            otherUsers.forEach(user => {
+                const userElement = document.createElement('div');
+                userElement.className = `conversation-item ${selectedUser === user.username ? 'active' : ''}`;
+                userElement.setAttribute('data-username', user.username);
                 
-                const messageElement = document.createElement('div');
-                messageElement.className = 'message user'; 
-                messageElement.innerHTML = `
-                    <div class="message-avatar" style="background-color: var(--secondary-color);">${userInitial}</div>
-                    <div class="message-content-wrapper">
-                        <div class="message-content">${message}</div>
-                        <span class="message-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                const userInitial = user.username.charAt(0).toUpperCase();
+                const colors = ['#4361ee', '#f59e0b', '#ef4444', '#3b82f6', '#10b981'];
+                const colorIndex = user.username.length % colors.length;
+                const avatarColor = colors[colorIndex];
+                
+                userElement.innerHTML = `
+                    <div class="conv-avatar" style="background-color: ${avatarColor};">${userInitial}</div>
+                    <div class="conv-info">
+                        <div class="conv-name">${user.username}</div>
+                        <div class="conv-status-indicator">
+                            <span class="status-dot online"></span>
+                            <span>En línea</span>
+                        </div>
+                    </div>
+                    <div class="conv-meta">
+                        <span class="time-ago">Ahora</span>
                     </div>
                 `;
                 
-                messagesContainer.appendChild(messageElement);
+                userElement.addEventListener('click', () => {
+                    selectUser(user.username, userInitial, avatarColor);
+                });
+                
+                usersList.appendChild(userElement);
+            });
+        }
+
+        // Función para seleccionar un usuario para chatear
+        function selectUser(username, userInitial, avatarColor) {
+            selectedUser = username;
+            
+            // Actualizar UI de usuarios
+            document.querySelectorAll('.conversation-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-username') === username) {
+                    item.classList.add('active');
+                }
+            });
+            
+            // Actualizar header del chat
+            chatHeaderName.textContent = username;
+            activeChatStatus.textContent = 'En línea - Chateando';
+            
+            // Actualizar sidebar de detalles
+            contactNameDetail.textContent = username;
+            contactAvatarDetailInitial.textContent = userInitial;
+            contactAvatarDetailInitial.style.backgroundColor = avatarColor;
+            contactEmailDetail.textContent = `${username.toLowerCase()}@chatapp.up.edu`;
+            contactRoleDetail.textContent = 'Usuario de ChatApp UP';
+            
+            // Limpiar mensajes actuales
+            messagesContainer.innerHTML = '<div class="system-message">Cargando conversación...</div>';
+            
+            // Habilitar input
+            enableChatInput();
+            
+            // Solicitar historial del chat
+            socket.emit('get-chat-history', {
+                currentUser: currentUser,
+                otherUser: username
+            });
+        }
+
+        // Función para habilitar el input de mensaje
+        function enableChatInput() {
+            messageInput.disabled = false;
+            messageInput.placeholder = `Escribe un mensaje para ${selectedUser}...`;
+            sendBtn.disabled = false;
+            messageInput.focus();
+        }
+
+        // Función para agregar mensaje al chat
+        function addMessage(messageData, isOwn = false) {
+            // Remover mensaje de bienvenida si existe
+            const welcomeMessage = messagesContainer.querySelector('.welcome-message');
+            if (welcomeMessage) {
+                welcomeMessage.remove();
+            }
+            
+            // Remover system message de carga
+            const systemMessage = messagesContainer.querySelector('.system-message');
+            if (systemMessage && systemMessage.textContent.includes('Cargando')) {
+                systemMessage.remove();
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isOwn ? 'user' : 'other'}`;
+            
+            const userInitial = messageData.from.charAt(0).toUpperCase();
+            const timestamp = messageData.timestamp || new Date().toLocaleTimeString('es-ES', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar" style="background-color: ${isOwn ? '#4361ee' : '#6a0dad'};">${userInitial}</div>
+                <div class="message-content-wrapper">
+                    <div class="message-content">${messageData.text}</div>
+                    <span class="message-time">${timestamp}</span>
+                </div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Función para enviar mensaje
+        function sendMessage() {
+            if (!selectedUser) {
+                alert('⚠️ Selecciona un usuario para chatear');
+                return;
+            }
+            
+            const messageText = messageInput.value.trim();
+            
+            if (messageText) {
+                const messageData = {
+                    from: currentUser,
+                    to: selectedUser,
+                    text: messageText
+                };
+                
+                socket.emit('send-private-message', messageData);
                 messageInput.value = '';
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                messageInput.focus();
+                
+                clearTimeout(typingTimer);
+            }
+        }
+
+        // Event Listeners
+        sendBtn.addEventListener('click', sendMessage);
+
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
             }
         });
+
+        messageInput.addEventListener('input', () => {
+            if (selectedUser) {
+                // Notificar que está escribiendo
+                socket.emit('typing', { 
+                    username: currentUser, 
+                    to: selectedUser 
+                });
+                
+                // Limpiar timer anterior
+                clearTimeout(typingTimer);
+                
+                // Configurar nuevo timer para detener indicador
+                typingTimer = setTimeout(() => {
+                    socket.emit('stop-typing', { to: selectedUser });
+                }, 1000);
+            }
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+                localStorage.removeItem('currentUser');
+                window.location.href = '/';
+            }
+        });
+
+        // Socket Event Listeners
+        socket.on('users-update', (users) => {
+            updateUsersList(users);
+        });
+
+        socket.on('new-private-message', (messageData) => {
+            // Solo mostrar si el mensaje es para la conversación actual
+            if ((messageData.to === currentUser && messageData.from === selectedUser) ||
+                (messageData.from === currentUser && messageData.to === selectedUser)) {
+                
+                const isOwn = messageData.from === currentUser;
+                addMessage(messageData, isOwn);
+            }
+        });
+
+        socket.on('chat-history', (data) => {
+            if (data.withUser === selectedUser) {
+                messagesContainer.innerHTML = '';
+                
+                if (data.messages.length === 0) {
+                    messagesContainer.innerHTML = `
+                        <div class="system-message">
+                            💬 Inicia la conversación con ${selectedUser}
+                        </div>
+                    `;
+                } else {
+                    data.messages.forEach(message => {
+                        const isOwn = message.from === currentUser;
+                        addMessage(message, isOwn);
+                    });
+                }
+            }
+        });
+
+        socket.on('user-typing', (data) => {
+            if (data.to === currentUser && data.username === selectedUser) {
+                typingIndicator.style.display = 'flex';
+                typingUser.textContent = data.username;
+            }
+        });
+
+        socket.on('user-stop-typing', (data) => {
+            if (data.to === currentUser && data.username === selectedUser) {
+                typingIndicator.style.display = 'none';
+            }
+        });
+
+        console.log('💬 Chat profesional inicializado para:', currentUser);
     </script>
 </body>
 </html>
-```http://googleusercontent.com/image_generation_content/6
