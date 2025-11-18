@@ -205,36 +205,36 @@ io.on('connection', (socket) => {
     });
 
     socket.on('send-private-message', async (messageData) => {
-    try {
-        const timestamp = getFormattedTime(); // ← Timestamp consistente
-        
-        const message = new Message({
-            from: messageData.from,
-            to: messageData.to,
-            text: messageData.text,
-            timestamp: timestamp,
-            date: new Date().toLocaleDateString('es-ES')
-        });
-        
-        const savedMessage = await message.save();
-        
-        const messageResponse = {
-            id: savedMessage._id,
-            from: savedMessage.from,
-            to: savedMessage.to,
-            text: savedMessage.text,
-            timestamp: savedMessage.timestamp, // ← Timestamp correcto
-            date: savedMessage.date
-        };
-        
-        socket.emit('new-private-message', messageResponse);
-        socket.to(messageData.to).emit('new-private-message', messageResponse);
-        
-    } catch (error) {
-        console.error('❌ Error guardando mensaje:', error);
-        socket.emit('message-error', { error: 'No se pudo guardar el mensaje' });
-    }
-});
+        try {
+            const timestamp = getFormattedTime(); // ← Timestamp consistente
+            
+            const message = new Message({
+                from: messageData.from,
+                to: messageData.to,
+                text: messageData.text,
+                timestamp: timestamp,
+                date: new Date().toLocaleDateString('es-ES')
+            });
+            
+            const savedMessage = await message.save();
+            
+            const messageResponse = {
+                id: savedMessage._id,
+                from: savedMessage.from,
+                to: savedMessage.to,
+                text: savedMessage.text,
+                timestamp: savedMessage.timestamp, // ← Timestamp correcto
+                date: savedMessage.date
+            };
+            
+            socket.emit('new-private-message', messageResponse);
+            socket.to(messageData.to).emit('new-private-message', messageResponse);
+            
+        } catch (error) {
+            console.error('❌ Error guardando mensaje:', error);
+            socket.emit('message-error', { error: 'No se pudo guardar el mensaje' });
+        }
+    });
 
     // Obtener historial de chat
     socket.on('get-chat-history', async (data) => {
