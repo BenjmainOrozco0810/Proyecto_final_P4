@@ -3,1046 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatApp UP - Sala de Chat</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            /* Colores Consistentes con Login/Register */
-            --primary-color: #6a0dad; /* Púrpura */
-            --primary-dark: #580c90;
-            --secondary-color: #4361ee; /* Azul para avatares por defecto */
-            --light-bg: #f7f9fc; /* Fondo general de la aplicación */
-            --card-bg: #ffffff; /* Fondo de paneles interiores */
-            --text-dark: #1f2937;
-            --text-light: #9ca3af; /* Gris claro para subtítulos y tiempo */
-            --border-color: #f3f4f6; /* Borde muy sutil */
-            --online: #34d399; /* Verde claro vibrante */
-            --user-msg: #6a0dad; /* Mensajes propios en Púrpura */
-            --other-msg: #f3f4f6; /* Gris muy claro para mensajes de otros */
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            --radius-soft: 16px; /* Radio de la tarjeta principal */
-            --radius-bubble: 20px; /* Radio para las burbujas */
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-
-        body {
-            background-color: var(--light-bg);
-            color: var(--text-dark);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            flex-direction: column; /* Permitir header y luego el chat-container */
-        }
-
-        /* ---------------------------------- Header Superior Global ---------------------------------- */
-        .global-chat-header {
-            width: 95vw;
-            max-width: 1500px;
-            background-color: var(--primary-color);
-            color: white;
-            padding: 1rem 1.5rem;
-            border-top-left-radius: var(--radius-soft);
-            border-top-right-radius: var(--radius-soft);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            z-index: 10;
-        }
-
-        .global-chat-header h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-        
-        .global-chat-header h1 i {
-            margin-right: 10px;
-        }
-
-        .global-chat-header .user-status-header {
-            font-size: 0.85rem;
-            opacity: 0.9;
-        }
-
-        .global-chat-header .logout-btn-header {
-            background-color: rgba(255, 255, 255, 0.15);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background-color 0.3s;
-        }
-        
-        .global-chat-header .logout-btn-header:hover {
-            background-color: rgba(255, 255, 255, 0.25);
-        }
-
-
-        .chat-container {
-            display: flex;
-            width: 95vw;
-            height: calc(95vh - 70px); /* Ajustar altura para el header global */
-            max-width: 1500px; 
-            background-color: var(--card-bg);
-            border-bottom-left-radius: var(--radius-soft);
-            border-bottom-right-radius: var(--radius-soft);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08); 
-            overflow: hidden;
-        }
-
-        /* ---------------------------------- Main Layout ---------------------------------- */
-        .chat-main {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
-
-        /* --- Columna 1: Sidebar de Conversaciones y Perfil --- */
-        .sidebar-conversations {
-            width: 300px; 
-            background-color: var(--card-bg);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            padding: 0; /* Ajustar padding */
-        }
-        
-        /* Contenedor del Perfil (parte superior) */
-        .profile-card {
-            padding: 20px 20px 20px;
-            text-align: center;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .profile-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background-color: var(--secondary-color);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 10px;
-            font-size: 2rem;
-            font-weight: 700;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .profile-name {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-        
-        .profile-role {
-            font-size: 0.85rem;
-            color: var(--text-light);
-            margin-bottom: 10px;
-        }
-        
-        .profile-status {
-            font-size: 0.8rem;
-            color: var(--online);
-            font-weight: 500;
-        }
-        
-        /* Nueva sección de Contactos (Header de la lista) */
-        .sidebar-contacts-header {
-            padding: 15px 20px;
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-dark);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-        }
-
-        .sidebar-contacts-header i {
-            margin-right: 10px;
-            color: var(--primary-color);
-        }
-
-        .sidebar-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px 10px; /* Padding ajustado para la lista */
-        }
-
-        .conversation-item {
-            display: flex;
-            align-items: center;
-            padding: 10px 10px;
-            border-radius: 10px;
-            margin-bottom: 5px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            position: relative;
-        }
-
-        .conversation-item:hover {
-            background-color: var(--light-bg);
-        }
-
-        .conversation-item.active {
-            background-color: var(--primary-color);
-            color: white;
-            box-shadow: 0 2px 8px rgba(106, 13, 173, 0.3);
-        }
-        
-        .conv-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--secondary-color); /* Color por defecto */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            margin-right: 12px;
-            flex-shrink: 0;
-            font-size: 1rem;
-        }
-        
-        .conversation-item.active .conv-avatar {
-            background-color: white; 
-            color: var(--primary-color);
-        }
-
-        .conv-info {
-            flex: 1;
-            overflow: hidden;
-        }
-
-        .conv-name {
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-bottom: 2px;
-        }
-        
-        .conv-status-indicator {
-            display: flex;
-            align-items: center;
-            font-size: 0.75rem;
-            color: var(--text-light);
-        }
-        
-        .conversation-item.active .conv-status-indicator {
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 0.5rem;
-        }
-        .status-dot.online { background-color: var(--online); }
-        .status-dot.offline { background-color: var(--text-light); }
-
-        .conv-meta {
-            text-align: right;
-            font-size: 0.75rem;
-            color: var(--text-light);
-            margin-left: 10px;
-        }
-        
-        .time-ago {
-            white-space: nowrap;
-        }
-        
-        .unread-count {
-            background-color: #ef4444; 
-            color: white;
-            font-size: 0.7rem;
-            font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 10px;
-            margin-top: 5px;
-        }
-        
-        /* --- Columna 2: Área Principal de Chat --- */
-        .chat-area {
-            flex: 2; 
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid var(--border-color);
-            overflow: hidden;
-            background-color: var(--card-bg); 
-        }
-        
-        .chat-area-header {
-            padding: 15px 30px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .chat-title h3 {
-            font-size: 1.25rem;
-            font-weight: 700;
-        }
-        
-        .chat-title .status-text {
-            font-size: 0.8rem;
-            color: var(--online);
-            margin-top: 2px;
-        }
-
-        .chat-actions button {
-            background: none;
-            border: none;
-            color: var(--text-light);
-            font-size: 1.2rem;
-            margin-left: 20px;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-        
-        .chat-actions button:hover {
-            color: var(--primary-color);
-        }
-
-        .messages-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px 30px;
-            background-color: var(--light-bg); 
-        }
-        
-        /* Estilos de Burbuja */
-        .message {
-            max-width: 60%;
-            margin-bottom: 15px;
-            padding: 10px 15px;
-            border-radius: var(--radius-bubble); 
-            line-height: 1.4;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            position: relative;
-            display: flex;
-            align-items: flex-end;
-            gap: 10px;
-        }
-        
-        .message-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            flex-shrink: 0;
-            background-color: var(--secondary-color); /* Color por defecto */
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.9rem;
-        }
-        
-        .message-content-wrapper {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .message-time {
-            font-size: 0.7rem;
-            color: var(--text-light);
-            opacity: 0.8;
-            margin-top: 5px;
-            text-align: right;
-            order: 2;
-        }
-
-        .message.user {
-            background-color: var(--user-msg);
-            color: white;
-            margin-left: auto;
-            flex-direction: row-reverse; 
-            border-radius: 20px 20px 4px 20px;
-        }
-        
-        .message.other {
-            background-color: var(--other-msg);
-            color: var(--text-dark);
-            border-radius: 20px 20px 20px 4px;
-        }
-        
-        .message.user .message-time {
-            color: rgba(255, 255, 255, 0.7);
-        }
-        
-        /* Indicador Escribiendo (Typing Indicator) */
-        .typing-indicator-container {
-            padding: 10px 30px 5px;
-            background-color: var(--card-bg);
-            border-top: 1px solid var(--border-color);
-            font-size: 0.85rem;
-            color: var(--text-light);
-            display: flex;
-            align-items: center;
-            height: 40px;
-            display: none;
-        }
-        
-        .typing-indicator-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background-color: var(--text-light);
-            margin: 0 2px;
-            animation: pulse 1.5s infinite;
-        }
-        
-        .typing-indicator-dot:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-        
-        .typing-indicator-dot:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-        
-        @keyframes pulse {
-            0% { opacity: 0.2; }
-            50% { opacity: 1; }
-            100% { opacity: 0.2; }
-        }
-        
-        /* Envío de Mensaje (Input) */
-        .message-input-container {
-            display: flex;
-            align-items: center;
-            padding: 10px 30px 20px;
-            background-color: var(--card-bg);
-        }
-        
-        .input-group-send {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            border: 1px solid var(--border-color);
-            border-radius: 25px; 
-            padding-right: 10px;
-            background-color: var(--light-bg);
-        }
-
-        #message-input {
-            flex: 1;
-            padding: 10px 20px;
-            border: none;
-            outline: none;
-            background: transparent;
-            font-size: 1rem;
-        }
-        
-        .audio-btn {
-            background: none;
-            border: none;
-            color: var(--text-light);
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 5px;
-            transition: color 0.2s;
-        }
-        
-        .audio-btn:hover {
-            color: var(--primary-color);
-        }
-
-        .send-btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 25px;
-            margin-left: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background-color 0.3s;
-        }
-        
-        .send-btn:disabled {
-            background-color: var(--text-light);
-            cursor: not-allowed;
-        }
-        
-        /* --- Columna 3: Sidebar de Detalles (Información del Contacto) --- */
-        .detail-sidebar {
-            width: 300px;
-            background-color: var(--card-bg);
-            border-left: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            padding: 30px 20px;
-            overflow-y: auto;
-            text-align: center;
-        }
-
-        .contact-info-card {
-            background-color: var(--light-bg);
-            padding: 20px;
-            border-radius: var(--radius-soft);
-            margin-bottom: 20px;
-        }
-        
-        .contact-avatar-large {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background-color: var(--primary-color);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            font-weight: 700;
-            margin: 0 auto 10px;
-        }
-        
-        .contact-name-detail {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-        
-        .contact-email {
-            font-size: 0.85rem;
-            color: var(--text-light);
-            margin-bottom: 15px;
-        }
-        
-        .logout-btn-detail {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            width: 100%;
-        }
-
-        /* Mensaje de bienvenida */
-        .welcome-message {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-light);
-        }
-
-        .welcome-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            opacity: 0.3;
-        }
-
-        .welcome-message h3 {
-            font-size: 1.5rem;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        .welcome-message p {
-            font-size: 1rem;
-            opacity: 0.7;
-        }
-
-        /* --- Responsive Design (Asegura la funcionalidad) --- */
-        @media (max-width: 1200px) {
-            .detail-sidebar {
-                width: 250px;
-            }
-        }
-        
-        @media (max-width: 900px) {
-            .detail-sidebar {
-                display: none; 
-            }
-            .global-chat-header .user-status-header {
-                display: none;
-            }
-        }
-
-        @media (max-width: 600px) {
-            .global-chat-header {
-                border-radius: 0;
-                padding: 0.8rem 1rem;
-            }
-            .global-chat-header h1 {
-                font-size: 1.2rem;
-            }
-            .global-chat-header .logout-btn-header {
-                padding: 0.4rem 0.8rem;
-                font-size: 0.8rem;
-            }
-            .chat-container {
-                width: 100vw;
-                height: calc(100vh - 60px); /* Ajustar altura para header móvil */
-                border-radius: 0;
-            }
-            .sidebar-conversations {
-                display: none; 
-            }
-            .chat-area {
-                border-right: none;
-            }
-            .messages-container {
-                padding: 10px;
-            }
-            .message-input-container {
-                padding: 10px;
-            }
-            .input-group-send {
-                padding-right: 5px;
-            }
-            #message-input {
-                padding: 8px 15px;
-            }
-            .send-btn {
-                padding: 8px 15px;
-            }
-            .typing-indicator-container {
-                padding: 5px 15px;
-            }
-        }
-    </style>
+    <title>ChatApp UP | Sala de Chat</title>
+    <link rel="stylesheet" href="css/chat.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <header class="global-chat-header">
-        <div>
-            <h1><i class="fas fa-comment-dots"></i> ChatApp UP</h1>
-            <span class="user-status-header">Conectado como: <span id="current-user-header">Invitado</span></span>
-        </div>
-        <button id="logout-btn-header" class="logout-btn-header"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
-    </header>
-
     <div class="chat-container">
-        <div class="chat-main">
-            
-            <aside class="sidebar-conversations">
-                <div class="profile-card">
-                    <div class="profile-avatar" id="profile-initial">U</div>
-                    <div class="profile-name" id="current-user-name">Usuario</div>
-                    <div class="profile-role">Programación IV - UP</div>
-                    <div class="profile-status"><i class="fas fa-circle" style="font-size: 0.6em; color: var(--online); margin-right: 5px;"></i>Activo</div>
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <!-- Header Sidebar -->
+            <div class="sidebar-header">
+                <div class="app-logo">
+                    <div class="logo-icon">💬</div>
+                    <h2>ChatApp UP</h2>
                 </div>
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-info">
+                        <span class="username" id="current-user">Usuario</span>
+                        <span class="user-status">🟢 En línea</span>
+                    </div>
+                </div>
+            </div>
 
-                <div class="sidebar-contacts-header">
-                    <i class="fas fa-users"></i> Contactos Conectados
+            <!-- Buscador -->
+            <div class="search-container">
+                <div class="search-icon">
+                    <i class="fas fa-search"></i>
                 </div>
-                <div id="users-list" class="sidebar-list">
-                    <div class="welcome-message">
-                        <div class="welcome-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <p>Selecciona un usuario para comenzar a chatear</p>
-                    </div>
-                </div>
-            </aside>
+                <input type="text" id="search-users" placeholder="Buscar usuarios...">
+            </div>
 
-            <main class="chat-area">
-                
-                <div class="chat-area-header">
-                    <div class="chat-title">
-                        <h3 id="chat-header-name">ChatApp UP</h3>
-                        <div class="status-text" id="active-chat-status">Selecciona un contacto para chatear</div>
-                    </div>
-                    <div class="chat-actions">
-                        <button><i class="fas fa-search"></i></button>
+            <!-- Lista de usuarios -->
+            <div class="users-section">
+                <h3 class="section-title">Usuarios Conectados</h3>
+                <div id="users-list" class="users-list">
+                    <div class="empty-state">
+                        <i class="fas fa-users"></i>
+                        <p>No hay otros usuarios conectados</p>
                     </div>
                 </div>
-                
-                <div id="messages-container" class="messages-container">
-                    <div class="welcome-message">
-                        <div class="welcome-icon">
-                            <i class="fas fa-comments"></i>
-                        </div>
-                        <h3>Bienvenido al Chat</h3>
-                        <p>Selecciona un usuario de la lista para comenzar a chatear</p>
-                    </div>
+                <div class="online-count">
+                    <span id="online-count">0</span> usuarios en línea
                 </div>
+            </div>
 
-                <!-- Indicador de typing -->
-                <div id="typing-indicator" class="typing-indicator-container">
-                    <div class="typing-indicator-dot"></div>
-                    <div class="typing-indicator-dot"></div>
-                    <div class="typing-indicator-dot"></div>
-                    <span style="margin-left: 10px;" id="typing-user">Alguien</span> está escribiendo...
+            <!-- Footer Sidebar -->
+            <div class="sidebar-footer">
+                <button id="logout-btn" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Cerrar Sesión
+                </button>
+                <div class="project-info">
+                    <span>UP - Programación IV</span>
                 </div>
-                
-                <div class="message-input-container">
-                    <div class="input-group-send">
-                        <input type="text" id="message-input" placeholder="Selecciona un usuario primero..." disabled>
-                        <button class="audio-btn"><i class="fas fa-microphone"></i></button>
+            </div>
+        </aside>
+
+        <!-- Área principal del chat -->
+        <main class="chat-area">
+            <!-- Header del chat -->
+            <header class="chat-header">
+                <div class="chat-info">
+                    <div class="active-user-avatar">
+                        <i class="fas fa-user"></i>
                     </div>
-                    <button id="send-btn" class="send-btn" disabled>
-                        <i class="fas fa-paper-plane"></i>
+                    <div class="active-user-info">
+                        <h3 id="active-chat-title">Selecciona un chat</h3>
+                        <span id="active-chat-status" class="chat-status">Para comenzar a conversar</span>
+                    </div>
+                </div>
+                <div class="chat-actions">
+                    <button class="action-btn" title="Información">
+                        <i class="fas fa-info-circle"></i>
                     </button>
                 </div>
-            </main>
-                     
-        </div>
+            </header>
+
+            <!-- Mensajes -->
+            <div id="messages-container" class="messages-container">
+                <div class="welcome-message">
+                    <div class="welcome-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h3>Bienvenido al Chat</h3>
+                    <p>Selecciona un usuario de la lista para comenzar a chatear</p>
+                </div>
+            </div>
+
+            <!-- Indicador de typing -->
+            <div id="typing-indicator" class="typing-indicator" style="display: none;">
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <span id="typing-user">Alguien</span> está escribiendo...
+            </div>
+
+            <!-- Input de mensaje -->
+            <div class="message-input-container">
+                <div class="input-actions">
+                    <button class="action-btn" title="Adjuntar archivo">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <button class="action-btn" title="Emojis">
+                        <i class="fas fa-smile"></i>
+                    </button>
+                </div>
+                <input type="text" id="message-input" placeholder="Escribe un mensaje..." disabled>
+                <button id="send-btn" class="send-btn" disabled>
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </main>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script>
-        // Conectar al servidor Socket.io
-        const socket = io({
-            transports: ['websocket', 'polling']
-        });
-
-        // Elementos del DOM
-        const messagesContainer = document.getElementById('messages-container');
-        const messageInput = document.getElementById('message-input');
-        const sendBtn = document.getElementById('send-btn');
-        const usersList = document.getElementById('users-list');
-        const currentUserHeader = document.getElementById('current-user-header');
-        const currentUserName = document.getElementById('current-user-name');
-        const profileInitial = document.getElementById('profile-initial');
-        const chatHeaderName = document.getElementById('chat-header-name');
-        const activeChatStatus = document.getElementById('active-chat-status');
-        const contactNameDetail = document.getElementById('contact-name-detail');
-        const contactAvatarDetailInitial = document.getElementById('contact-avatar-detail-initial');
-        const contactEmailDetail = document.getElementById('contact-email-detail');
-        const contactRoleDetail = document.getElementById('contact-role-detail');
-        const typingIndicator = document.getElementById('typing-indicator');
-        const typingUser = document.getElementById('typing-user');
-        const logoutBtn = document.getElementById('logout-btn-header');
-
-        // Variables de estado
-        let currentUser = localStorage.getItem('currentUser') || 'Usuario';
-        let selectedUser = null;
-        let typingTimer;
-
-        console.log('🚀 INICIANDO CHAT - Usuario:', currentUser);
-
-        // Inicializar
-        document.addEventListener('DOMContentLoaded', function() {
-            const userInitial = currentUser.charAt(0).toUpperCase();
-            
-            currentUserHeader.textContent = currentUser;
-            currentUserName.textContent = currentUser;
-            profileInitial.textContent = userInitial;
-
-            // Verificar estado inicial del input
-            console.log('🔍 Estado inicial del input:');
-            console.log(' - disabled:', messageInput.disabled);
-            console.log(' - placeholder:', messageInput.placeholder);
-            console.log(' - sendBtn disabled:', sendBtn.disabled);
-
-            // Notificar al servidor que el usuario se ha unido
-            socket.emit('user-login', { username: currentUser });
-
-            // Verificar autenticación
-            if (!currentUser || currentUser === 'Usuario') {
-                alert('❌ Debes iniciar sesión primero');
-                window.location.href = '/';
-                return;
-            }
-            
-            // Inicialmente deshabilitar input
-            disableChatInput();
-        });
-
-        // ✅ FUNCIÓN PARA HABILITAR INPUT
-        function enableChatInput() {
-            console.log('🎯 HABILITANDO INPUT para:', selectedUser);
-            messageInput.disabled = false;
-            messageInput.placeholder = `Escribe un mensaje para ${selectedUser}...`;
-            sendBtn.disabled = false;
-            messageInput.focus();
-            
-            console.log('✅ Input habilitado - Estado:');
-            console.log(' - disabled:', messageInput.disabled);
-            console.log(' - placeholder:', messageInput.placeholder);
-            console.log(' - sendBtn disabled:', sendBtn.disabled);
-        }
-
-        // ✅ FUNCIÓN PARA DESHABILITAR INPUT
-        function disableChatInput() {
-            console.log('🚫 DESHABILITANDO INPUT');
-            messageInput.disabled = true;
-            messageInput.placeholder = 'Selecciona un usuario primero...';
-            sendBtn.disabled = true;
-        }
-
-        // Función para actualizar lista de usuarios
-        function updateUsersList(users) {
-            console.log('👥 Actualizando lista de usuarios:', users);
-            usersList.innerHTML = '';
-            const otherUsers = users.filter(user => user.username !== currentUser);
-            
-            if (otherUsers.length === 0) {
-                usersList.innerHTML = `
-                    <div class="welcome-message">
-                        <i class="fas fa-users" style="font-size: 3rem; opacity: 0.3;"></i>
-                        <p>No hay otros usuarios conectados</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            otherUsers.forEach(user => {
-                const userElement = document.createElement('div');
-                userElement.className = `conversation-item ${selectedUser === user.username ? 'active' : ''}`;
-                userElement.setAttribute('data-username', user.username);
-                
-                const userInitial = user.username.charAt(0).toUpperCase();
-                const colors = ['#4361ee', '#f59e0b', '#ef4444', '#3b82f6', '#10b981'];
-                const colorIndex = user.username.length % colors.length;
-                const avatarColor = colors[colorIndex];
-                
-                userElement.innerHTML = `
-                    <div class="conv-avatar" style="background-color: ${avatarColor};">${userInitial}</div>
-                    <div class="conv-info">
-                        <div class="conv-name">${user.username}</div>
-                        <div class="conv-status-indicator">
-                            <span class="status-dot online"></span>
-                            <span>En línea</span>
-                        </div>
-                    </div>
-                    <div class="conv-meta">
-                        <span class="time-ago">Ahora</span>
-                    </div>
-                `;
-                
-                userElement.addEventListener('click', () => {
-                    console.log('🖱️ Click en usuario:', user.username);
-                    selectUser(user.username, userInitial, avatarColor);
-                });
-                
-                usersList.appendChild(userElement);
-            });
-            
-            console.log('✅ Lista de usuarios actualizada. Elementos creados:', otherUsers.length);
-        }
-
-        // Función para seleccionar un usuario para chatear
-        function selectUser(username, userInitial, avatarColor) {
-            console.log('🎯 SELECCIONANDO USUARIO:', username);
-            selectedUser = username;
-            
-            // Actualizar UI de usuarios
-            document.querySelectorAll('.conversation-item').forEach(item => {
-                item.classList.remove('active');
-                if (item.getAttribute('data-username') === username) {
-                    item.classList.add('active');
-                }
-            });
-            
-            // Actualizar header del chat
-            chatHeaderName.textContent = username;
-            activeChatStatus.textContent = 'En línea - Chateando';
-            
-            // Actualizar sidebar de detalles
-            contactNameDetail.textContent = username;
-            contactAvatarDetailInitial.textContent = userInitial;
-            contactAvatarDetailInitial.style.backgroundColor = avatarColor;
-            contactEmailDetail.textContent = `${username.toLowerCase()}@chatapp.up.edu`;
-            contactRoleDetail.textContent = 'Usuario de ChatApp UP';
-            
-            // Limpiar mensajes actuales
-            messagesContainer.innerHTML = '<div class="system-message">Cargando conversación...</div>';
-            
-            // HABILITAR INPUT
-            enableChatInput();
-            
-            // Solicitar historial del chat
-            socket.emit('get-chat-history', {
-                currentUser: currentUser,
-                otherUser: username
-            });
-            
-            console.log('✅ Usuario seleccionado correctamente');
-        }
-
-        // Función para agregar mensaje al chat
-        function addMessage(messageData, isOwn = false) {
-            // Remover mensaje de bienvenida si existe
-            const welcomeMessage = messagesContainer.querySelector('.welcome-message');
-            if (welcomeMessage) {
-                welcomeMessage.remove();
-            }
-            
-            // Remover system message de carga
-            const systemMessage = messagesContainer.querySelector('.system-message');
-            if (systemMessage && systemMessage.textContent.includes('Cargando')) {
-                systemMessage.remove();
-            }
-            
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isOwn ? 'user' : 'other'}`;
-            
-            const userInitial = messageData.from.charAt(0).toUpperCase();
-            
-            // USAR TIMESTAMP DEL SERVIDOR O CREAR UNO CORRECTO
-            let timestamp;
-            if (messageData.timestamp) {
-                timestamp = messageData.timestamp;
-            } else {
-                timestamp = new Date().toLocaleTimeString('es-ES', { 
-                    hour: '2-digit', 
-                    minute: '2-digit',
-                    hour12: false
-                });
-            }
-            
-            messageDiv.innerHTML = `
-                <div class="message-avatar" style="background-color: ${isOwn ? '#4361ee' : '#6a0dad'};">${userInitial}</div>
-                <div class="message-content-wrapper">
-                    <div class="message-content">${messageData.text}</div>
-                    <span class="message-time">${timestamp}</span>
-                </div>
-            `;
-            
-            messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        // Función para enviar mensaje
-        function sendMessage() {
-            console.log('📤 Intentando enviar mensaje...');
-            console.log(' - selectedUser:', selectedUser);
-            console.log(' - message:', messageInput.value);
-            
-            if (!selectedUser) {
-                alert('⚠️ Selecciona un usuario para chatear');
-                return;
-            }
-            
-            const messageText = messageInput.value.trim();
-            
-            if (messageText) {
-                const messageData = {
-                    from: currentUser,
-                    to: selectedUser,
-                    text: messageText
-                };
-                
-                console.log('📨 Enviando mensaje:', messageData);
-                socket.emit('send-private-message', messageData);
-                messageInput.value = '';
-                messageInput.focus();
-                
-                clearTimeout(typingTimer);
-            }
-        }
-
-        // Event Listeners
-        sendBtn.addEventListener('click', function() {
-            console.log('🖱️ Click en botón enviar');
-            sendMessage();
-        });
-
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                console.log('⌨️ Enter presionado en input');
-                sendMessage();
-            }
-        });
-
-        messageInput.addEventListener('input', () => {
-            if (selectedUser) {
-                socket.emit('typing', { 
-                    username: currentUser, 
-                    to: selectedUser 
-                });
-                
-                clearTimeout(typingTimer);
-                typingTimer = setTimeout(() => {
-                    socket.emit('stop-typing', { to: selectedUser });
-                }, 1000);
-            }
-        });
-
-        logoutBtn.addEventListener('click', () => {
-            if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-                localStorage.removeItem('currentUser');
-                window.location.href = '/';
-            }
-        });
-
-        // Socket Event Listeners
-        socket.on('users-update', (users) => {
-            console.log('📡 Evento users-update recibido:', users);
-            updateUsersList(users);
-        });
-
-        socket.on('new-private-message', (messageData) => {
-            console.log('📨 Nuevo mensaje recibido:', messageData);
-            // Solo mostrar si el mensaje es para la conversación actual
-            if ((messageData.to === currentUser && messageData.from === selectedUser) ||
-                (messageData.from === currentUser && messageData.to === selectedUser)) {
-                
-                const isOwn = messageData.from === currentUser;
-                addMessage(messageData, isOwn);
-            }
-        });
-
-        socket.on('chat-history', (data) => {
-            console.log('📜 Historial recibido:', data);
-            if (data.withUser === selectedUser) {
-                messagesContainer.innerHTML = '';
-                
-                if (data.messages.length === 0) {
-                    messagesContainer.innerHTML = `
-                        <div class="system-message">
-                            💬 Inicia la conversación con ${selectedUser}
-                        </div>
-                    `;
-                } else {
-                    data.messages.forEach(message => {
-                        const isOwn = message.from === currentUser;
-                        addMessage(message, isOwn);
-                    });
-                }
-            }
-        });
-
-        socket.on('user-typing', (data) => {
-            if (data.to === currentUser && data.username === selectedUser) {
-                typingIndicator.style.display = 'flex';
-                typingUser.textContent = data.username;
-            }
-        });
-
-        socket.on('user-stop-typing', (data) => {
-            if (data.to === currentUser && data.username === selectedUser) {
-                typingIndicator.style.display = 'none';
-            }
-        });
-
-        // ✅ FORZAR PRUEBA: Habilitar input manualmente después de 3 segundos
-        setTimeout(() => {
-            console.log('🔄 Prueba automática - Verificando estado del input...');
-            console.log(' - selectedUser:', selectedUser);
-            console.log(' - input.disabled:', messageInput.disabled);
-            console.log(' - sendBtn.disabled:', sendBtn.disabled);
-            
-            // Si después de 3 segundos sigue sin funcionar, forzar habilitación
-            if (messageInput.disabled) {
-                console.log('⚠️ Input sigue deshabilitado. Forzando habilitación...');
-                messageInput.disabled = false;
-                messageInput.placeholder = 'Escribe un mensaje...';
-                sendBtn.disabled = false;
-            }
-        }, 3000);
-
-        console.log('💬 Chat profesional inicializado para:', currentUser);
-    </script>
+    <script src="js/chat.js"></script>
 </body>
 </html>
