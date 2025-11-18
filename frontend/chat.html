@@ -5,30 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChatApp UP - Sala de Chat</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #4361ee;
-            --primary-dark: #3a56d4;
-            --secondary-color: #7209b7;
-            --light-bg: #f8f9fa;
-            --dark-bg: #2d3748;
-            --card-bg: #ffffff;
-            --text-dark: #2d3748;
-            --text-light: #718096;
-            --border-color: #e2e8f0;
-            --online: #48bb78;
-            --offline: #a0aec0;
-            --user-msg: #e6f7ff;
-            --other-msg: #f7fafc;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --radius: 8px;
+            /* Colores Consistentes con Login/Register */
+            --primary-color: #6a0dad; /* Púrpura */
+            --primary-dark: #580c90;
+            --secondary-color: #4361ee; /* Azul para avatares por defecto */
+            --light-bg: #f7f9fc; /* Fondo general de la aplicación */
+            --card-bg: #ffffff; /* Fondo de paneles interiores */
+            --text-dark: #1f2937;
+            --text-light: #9ca3af; /* Gris claro para subtítulos y tiempo */
+            --border-color: #f3f4f6; /* Borde muy sutil */
+            --online: #34d399; /* Verde claro vibrante */
+            --user-msg: #6a0dad; /* Mensajes propios en Púrpura */
+            --other-msg: #f3f4f6; /* Gris muy claro para mensajes de otros */
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            --radius-soft: 16px; /* Radio de la tarjeta principal */
+            --radius-bubble: 20px; /* Radio para las burbujas */
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', sans-serif;
         }
 
         body {
@@ -36,147 +37,213 @@
             color: var(--text-dark);
             height: 100vh;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            flex-direction: column; /* Permitir header y luego el chat-container */
         }
 
-        .chat-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            max-width: 1400px;
-            margin: 0 auto;
-            background-color: var(--card-bg);
-            box-shadow: var(--shadow);
-        }
-
-        /* Header */
-        .chat-header {
+        /* ---------------------------------- Header Superior Global ---------------------------------- */
+        .global-chat-header {
+            width: 95vw;
+            max-width: 1500px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-top-left-radius: var(--radius-soft);
+            border-top-right-radius: var(--radius-soft);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem 1.5rem;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            z-index: 10;
         }
 
-        .header-left h1 {
+        .global-chat-header h1 {
             font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
+            font-weight: 700;
+        }
+        
+        .global-chat-header h1 i {
+            margin-right: 10px;
         }
 
-        .user-status {
-            font-size: 0.9rem;
+        .global-chat-header .user-status-header {
+            font-size: 0.85rem;
             opacity: 0.9;
         }
 
-        #current-user {
-            font-weight: 600;
-        }
-
-        .logout-btn {
-            background-color: rgba(255, 255, 255, 0.2);
+        .global-chat-header .logout-btn-header {
+            background-color: rgba(255, 255, 255, 0.15);
             color: white;
-            border: none;
+            border: 1px solid rgba(255, 255, 255, 0.4);
             padding: 0.5rem 1rem;
-            border-radius: var(--radius);
+            border-radius: 6px;
             cursor: pointer;
             font-weight: 500;
             transition: background-color 0.3s;
         }
-
-        .logout-btn:hover {
-            background-color: rgba(255, 255, 255, 0.3);
+        
+        .global-chat-header .logout-btn-header:hover {
+            background-color: rgba(255, 255, 255, 0.25);
         }
 
-        /* Main content */
+
+        .chat-container {
+            display: flex;
+            width: 95vw;
+            height: calc(95vh - 70px); /* Ajustar altura para el header global */
+            max-width: 1500px; 
+            background-color: var(--card-bg);
+            border-bottom-left-radius: var(--radius-soft);
+            border-bottom-right-radius: var(--radius-soft);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08); 
+            overflow: hidden;
+        }
+
+        /* ---------------------------------- Main Layout ---------------------------------- */
         .chat-main {
             display: flex;
             flex: 1;
             overflow: hidden;
         }
 
-        /* Sidebar */
-        .users-sidebar {
-            width: 280px;
+        /* --- Columna 1: Sidebar de Conversaciones y Perfil --- */
+        .sidebar-conversations {
+            width: 300px; 
             background-color: var(--card-bg);
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            flex-shrink: 0;
+            padding: 0; /* Ajustar padding */
         }
-
-        .users-sidebar h3 {
-            padding: 1.25rem 1.5rem;
-            background-color: var(--light-bg);
-            color: var(--text-dark);
-            font-size: 1rem;
-            font-weight: 600;
+        
+        /* Contenedor del Perfil (parte superior) */
+        .profile-card {
+            padding: 20px 20px 20px;
+            text-align: center;
             border-bottom: 1px solid var(--border-color);
         }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-size: 2rem;
+            font-weight: 700;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
 
-        .users-sidebar h3 i {
-            margin-right: 0.5rem;
+        .profile-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .profile-role {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+        
+        .profile-status {
+            font-size: 0.8rem;
+            color: var(--online);
+            font-weight: 500;
+        }
+        
+        /* Nueva sección de Contactos (Header de la lista) */
+        .sidebar-contacts-header {
+            padding: 15px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-contacts-header i {
+            margin-right: 10px;
             color: var(--primary-color);
         }
 
-        .users-list {
+        .sidebar-list {
             flex: 1;
             overflow-y: auto;
-            padding: 0.5rem;
+            padding: 10px 10px; /* Padding ajustado para la lista */
         }
 
-        .user-item {
+        .conversation-item {
             display: flex;
             align-items: center;
-            padding: 0.75rem 1rem;
-            border-radius: var(--radius);
-            margin-bottom: 0.5rem;
+            padding: 10px 10px;
+            border-radius: 10px;
+            margin-bottom: 5px;
             cursor: pointer;
             transition: background-color 0.2s;
+            position: relative;
         }
 
-        .user-item:hover {
+        .conversation-item:hover {
             background-color: var(--light-bg);
         }
 
-        .user-item.active {
+        .conversation-item.active {
             background-color: var(--primary-color);
             color: white;
+            box-shadow: 0 2px 8px rgba(106, 13, 173, 0.3);
         }
-
-        .user-avatar {
+        
+        .conv-avatar {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background-color: var(--primary-color);
+            background-color: var(--secondary-color); /* Color por defecto */
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-weight: 600;
-            margin-right: 0.75rem;
+            margin-right: 12px;
             flex-shrink: 0;
+            font-size: 1rem;
+        }
+        
+        .conversation-item.active .conv-avatar {
+            background-color: white; 
+            color: var(--primary-color);
         }
 
-        .user-info {
+        .conv-info {
             flex: 1;
             overflow: hidden;
         }
 
-        .user-name {
-            font-weight: 500;
+        .conv-name {
+            font-weight: 600;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            margin-bottom: 2px;
         }
-
-        .user-status-indicator {
+        
+        .conv-status-indicator {
             display: flex;
             align-items: center;
             font-size: 0.75rem;
-            margin-top: 0.25rem;
+            color: var(--text-light);
+        }
+        
+        .conversation-item.active .conv-status-indicator {
+            color: rgba(255, 255, 255, 0.8);
         }
 
         .status-dot {
@@ -185,338 +252,549 @@
             border-radius: 50%;
             margin-right: 0.5rem;
         }
+        .status-dot.online { background-color: var(--online); }
+        .status-dot.offline { background-color: var(--text-light); }
 
-        .online {
-            background-color: var(--online);
-        }
-
-        .offline {
-            background-color: var(--offline);
-        }
-
-        .online-count {
-            padding: 1rem 1.5rem;
-            background-color: var(--light-bg);
-            border-top: 1px solid var(--border-color);
-            font-size: 0.9rem;
+        .conv-meta {
+            text-align: right;
+            font-size: 0.75rem;
             color: var(--text-light);
+            margin-left: 10px;
         }
-
-        #online-count {
-            font-weight: 600;
-            color: var(--primary-color);
+        
+        .time-ago {
+            white-space: nowrap;
         }
-
-        /* Chat area */
+        
+        .unread-count {
+            background-color: #ef4444; 
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-top: 5px;
+        }
+        
+        /* --- Columna 2: Área Principal de Chat --- */
         .chat-area {
-            flex: 1;
+            flex: 2; 
             display: flex;
             flex-direction: column;
+            border-right: 1px solid var(--border-color);
             overflow: hidden;
+            background-color: var(--card-bg); 
         }
-
+        
         .chat-area-header {
-            padding: 1rem 1.5rem;
-            background-color: var(--light-bg);
+            padding: 15px 30px;
             border-bottom: 1px solid var(--border-color);
-        }
-
-        .chat-area-header h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-dark);
-        }
-
-        .selected-user-info {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            margin-top: 0.5rem;
+        }
+        
+        .chat-title h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        
+        .chat-title .status-text {
+            font-size: 0.8rem;
+            color: var(--online);
+            margin-top: 2px;
         }
 
-        .selected-user-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background-color: var(--primary-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            margin-right: 0.75rem;
-            font-size: 0.9rem;
+        .chat-actions button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.2rem;
+            margin-left: 20px;
+            cursor: pointer;
+            transition: color 0.2s;
         }
-
-        .selected-user-name {
-            font-weight: 500;
+        
+        .chat-actions button:hover {
+            color: var(--primary-color);
         }
 
         .messages-container {
             flex: 1;
             overflow-y: auto;
-            padding: 1.5rem;
-            background-color: var(--light-bg);
+            padding: 20px 30px;
+            background-color: var(--light-bg); 
         }
-
-        .system-message {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-light);
-            font-style: italic;
-        }
-
+        
+        /* Estilos de Burbuja */
         .message {
-            max-width: 70%;
-            margin-bottom: 1rem;
-            padding: 0.75rem 1rem;
-            border-radius: var(--radius);
+            max-width: 60%;
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: var(--radius-bubble); 
+            line-height: 1.4;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             position: relative;
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+        }
+        
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            background-color: var(--secondary-color); /* Color por defecto */
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+        
+        .message-content-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .message-time {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            opacity: 0.8;
+            margin-top: 5px;
+            text-align: right;
+            order: 2;
         }
 
         .message.user {
             background-color: var(--user-msg);
+            color: white;
             margin-left: auto;
-            border-bottom-right-radius: 4px;
+            flex-direction: row-reverse; 
+            border-radius: 20px 20px 4px 20px;
         }
-
+        
         .message.other {
             background-color: var(--other-msg);
-            border-bottom-left-radius: 4px;
+            color: var(--text-dark);
+            border-radius: 20px 20px 20px 4px;
         }
-
-        .message-header {
+        
+        .message.user .message-time {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        /* Indicador Escribiendo (Typing Indicator) */
+        .typing-indicator-container {
+            padding: 10px 30px 5px;
+            background-color: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            color: var(--text-light);
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.25rem;
-            font-size: 0.8rem;
+            align-items: center;
+            height: 40px;
         }
-
-        .message-sender {
-            font-weight: 600;
+        
+        .typing-indicator-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: var(--text-light);
+            margin: 0 2px;
+            animation: pulse 1.5s infinite;
         }
-
-        .message-time {
-            color: var(--text-light);
+        
+        .typing-indicator-dot:nth-child(2) {
+            animation-delay: 0.2s;
         }
-
-        .message-content {
-            word-wrap: break-word;
+        
+        .typing-indicator-dot:nth-child(3) {
+            animation-delay: 0.4s;
         }
-
-        .typing-indicator {
-            padding: 0.5rem 1.5rem;
-            color: var(--text-light);
-            font-style: italic;
-            font-size: 0.9rem;
-            height: 30px;
+        
+        @keyframes pulse {
+            0% { opacity: 0.2; }
+            50% { opacity: 1; }
+            100% { opacity: 0.2; }
         }
-
+        
+        /* Envío de Mensaje (Input) */
         .message-input-container {
             display: flex;
-            padding: 1rem 1.5rem;
-            border-top: 1px solid var(--border-color);
+            align-items: center;
+            padding: 10px 30px 20px;
             background-color: var(--card-bg);
+        }
+        
+        .input-group-send {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border-color);
+            border-radius: 25px; 
+            padding-right: 10px;
+            background-color: var(--light-bg);
         }
 
         #message-input {
             flex: 1;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
+            padding: 10px 20px;
+            border: none;
             outline: none;
-            transition: border-color 0.3s;
+            background: transparent;
+            font-size: 1rem;
         }
-
-        #message-input:focus {
-            border-color: var(--primary-color);
+        
+        .audio-btn {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.2s;
         }
-
-        #message-input:disabled {
-            background-color: var(--light-bg);
-            cursor: not-allowed;
+        
+        .audio-btn:hover {
+            color: var(--primary-color);
         }
 
         .send-btn {
             background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 0.75rem 1.5rem;
-            margin-left: 0.75rem;
-            border-radius: var(--radius);
+            padding: 10px 20px;
+            border-radius: 25px;
+            margin-left: 10px;
             cursor: pointer;
-            font-weight: 500;
+            font-weight: 600;
             transition: background-color 0.3s;
         }
-
-        .send-btn:hover:not(:disabled) {
-            background-color: var(--primary-dark);
+        
+        /* --- Columna 3: Sidebar de Detalles (Información del Contacto) --- */
+        .detail-sidebar {
+            width: 300px;
+            background-color: var(--card-bg);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            padding: 30px 20px;
+            overflow-y: auto;
+            text-align: center;
         }
 
-        .send-btn:disabled {
-            background-color: var(--offline);
-            cursor: not-allowed;
+        .contact-info-card {
+            background-color: var(--light-bg);
+            padding: 20px;
+            border-radius: var(--radius-soft);
+            margin-bottom: 20px;
+        }
+        
+        .contact-avatar-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0 auto 10px;
+        }
+        
+        .contact-name-detail {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .contact-email {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 15px;
+        }
+        
+        .logout-btn-detail {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            width: 100%;
         }
 
-        /* Scrollbar styling */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-        }
-
-        /* Responsive design */
-        @media (max-width: 768px) {
-            .chat-main {
-                flex-direction: column;
+        /* --- Responsive Design (Asegura la funcionalidad) --- */
+        @media (max-width: 1200px) {
+            .detail-sidebar {
+                width: 250px;
             }
-            
-            .users-sidebar {
-                width: 100%;
-                height: 200px;
+        }
+        
+        @media (max-width: 900px) {
+            .detail-sidebar {
+                display: none; 
             }
-            
-            .message {
-                max-width: 85%;
+            .global-chat-header .user-status-header {
+                display: none;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .global-chat-header {
+                border-radius: 0;
+                padding: 0.8rem 1rem;
+            }
+            .global-chat-header h1 {
+                font-size: 1.2rem;
+            }
+            .global-chat-header .logout-btn-header {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+            }
+            .chat-container {
+                width: 100vw;
+                height: calc(100vh - 60px); /* Ajustar altura para header móvil */
+                border-radius: 0;
+            }
+            .sidebar-conversations {
+                display: none; 
+            }
+            .chat-area {
+                border-right: none;
+            }
+            .messages-container {
+                padding: 10px;
+            }
+            .message-input-container {
+                padding: 10px;
+            }
+            .input-group-send {
+                padding-right: 5px;
+            }
+            #message-input {
+                padding: 8px 15px;
+            }
+            .send-btn {
+                padding: 8px 15px;
+            }
+            .typing-indicator-container {
+                padding: 5px 15px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="chat-container">
-        <!-- Header -->
-        <header class="chat-header">
-            <div class="header-left">
-                <h1>ChatApp UP</h1>
-                <span class="user-status">Conectado como: <span id="current-user">Usuario</span></span>
-            </div>
-            <button id="logout-btn" class="logout-btn">Cerrar Sesión</button>
-        </header>
+    <header class="global-chat-header">
+        <div>
+            <h1><i class="fas fa-comment-dots"></i> ChatApp UP</h1>
+            <span class="user-status-header">Conectado como: <span id="current-user-header">Invitado</span></span>
+        </div>
+        <button id="logout-btn-header" class="logout-btn-header"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+    </header>
 
+    <div class="chat-container">
         <div class="chat-main">
-            <!-- Sidebar - Lista de usuarios -->
-            <aside class="users-sidebar">
-                <h3><i class="fas fa-users"></i> Usuarios Conectados</h3>
-                <div id="users-list" class="users-list">
-                    <!-- Los usuarios se cargarán aquí dinámicamente -->
-                    <div class="user-item">
-                        <div class="user-avatar">A</div>
-                        <div class="user-info">
-                            <div class="user-name">Ana García</div>
-                            <div class="user-status-indicator">
-                                <span class="status-dot online"></span>
-                                <span>En línea</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="user-item">
-                        <div class="user-avatar">C</div>
-                        <div class="user-info">
-                            <div class="user-name">Carlos López</div>
-                            <div class="user-status-indicator">
-                                <span class="status-dot online"></span>
-                                <span>En línea</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="user-item">
-                        <div class="user-avatar">M</div>
-                        <div class="user-info">
-                            <div class="user-name">María Rodríguez</div>
-                            <div class="user-status-indicator">
-                                <span class="status-dot online"></span>
-                                <span>En línea</span>
-                            </div>
-                        </div>
-                    </div>
+            
+            <aside class="sidebar-conversations">
+                <div class="profile-card">
+                    <div class="profile-avatar" id="profile-initial">B</div>
+                    <div class="profile-name" id="current-user-name">Bill Bradford</div>
+                    <div class="profile-role">Programación IV - UP</div>
+                    <div class="profile-status"><i class="fas fa-circle" style="font-size: 0.6em; color: var(--online); margin-right: 5px;"></i>Activo</div>
                 </div>
-                <div class="online-count">
-                    <span id="online-count">3</span> usuarios en línea
+
+                <div class="sidebar-contacts-header">
+                    <i class="fas fa-users"></i> Contactos
+                </div>
+                <div id="users-list" class="sidebar-list">
+                    
+                    <div class="conversation-item active" data-username="HenryBoyd">
+                        <div class="conv-avatar" style="background-color: #f59e0b;">H</div>
+                        <div class="conv-info">
+                            <div class="conv-name">Henry Boyd</div>
+                            <div class="conv-status-indicator">
+                                <span class="status-dot online"></span>
+                                <span>En línea</span>
+                            </div>
+                        </div>
+                        <div class="conv-meta">
+                            <span class="time-ago">9h ago</span>
+                        </div>
+                    </div>
+
+                    <div class="conversation-item" data-username="MarthaCurtis">
+                        <div class="conv-avatar" style="background-color: #ef4444;">M</div>
+                        <div class="conv-info">
+                            <div class="conv-name">Martha Curtis</div>
+                            <div class="conv-status-indicator">
+                                <span class="status-dot online"></span>
+                                <span>En línea</span>
+                            </div>
+                        </div>
+                        <div class="conv-meta">
+                            <span class="unread-count">2</span>
+                            <span class="time-ago">1d ago</span>
+                        </div>
+                    </div>
+
+                    <div class="conversation-item" data-username="CarlosLopez">
+                        <div class="conv-avatar" style="background-color: #3b82f6;">C</div>
+                        <div class="conv-info">
+                            <div class="conv-name">Carlos López</div>
+                            <div class="conv-status-indicator">
+                                <span class="status-dot offline"></span>
+                                <span>Desconectado</span>
+                            </div>
+                        </div>
+                        <div class="conv-meta">
+                            <span class="time-ago">2d ago</span>
+                        </div>
+                    </div>
                 </div>
             </aside>
 
-            <!-- Área principal de chat -->
             <main class="chat-area">
+                
                 <div class="chat-area-header">
-                    <h3>Selecciona un usuario para chatear</h3>
-                    <div class="selected-user-info" style="display: none;">
-                        <div class="selected-user-avatar">A</div>
-                        <div class="selected-user-name">Ana García</div>
+                    <div class="chat-title">
+                        <h3 id="chat-header-name">Chat con Henry Boyd</h3>
+                        <div class="status-text">Activo ahora</div>
+                    </div>
+                    <div class="chat-actions">
+                        <button><i class="fas fa-search"></i></button>
                     </div>
                 </div>
+                
                 <div id="messages-container" class="messages-container">
-                    <div class="system-message">
-                        Selecciona un usuario de la lista para comenzar a chatear
+                    <div class="message other">
+                        <div class="message-avatar">H</div>
+                        <div class="message-content-wrapper">
+                            <div class="message-content">Hi Henry!</div>
+                            <span class="message-time">9h ago</span>
+                        </div>
+                    </div>
+
+                    <div class="message user">
+                        <div class="message-avatar" style="background-color: #3b82f6;">B</div>
+                        <div class="message-content-wrapper">
+                            <div class="message-content">How can I help you today?</div>
+                            <span class="message-time">9h ago</span>
+                        </div>
                     </div>
                 </div>
-                <div id="typing-indicator" class="typing-indicator" style="display: none;"></div>
+                
+                <div id="typing-indicator" class="typing-indicator-container" style="display: none;">
+                    <span id="typing-user-name" style="margin-right: 10px;">Henry Boyd</span> está escribiendo
+                    <div class="typing-indicator-dot"></div>
+                    <div class="typing-indicator-dot"></div>
+                    <div class="typing-indicator-dot"></div>
+                </div>
+                
                 <div class="message-input-container">
-                    <input type="text" id="message-input" placeholder="Selecciona un usuario primero..." disabled>
-                    <button id="send-btn" class="send-btn" disabled>Enviar</button>
+                    <div class="input-group-send">
+                        <input type="text" id="message-input" placeholder="Enter your message here">
+                        <button class="audio-btn"><i class="fas fa-microphone"></i></button>
+                    </div>
+                    <button id="send-btn" class="send-btn">
+                        Send
+                    </button>
                 </div>
             </main>
+            
+            <aside class="detail-sidebar">
+                <div class="contact-info-card">
+                    <div class="contact-avatar-large" id="contact-avatar-detail-initial">H</div>
+                    <div class="contact-name-detail" id="contact-name-detail">Henry Boyd</div>
+                    <div class="contact-email">henryboyd@gmail.com</div>
+                    <div class="contact-role" style="color: var(--primary-color);">Lead UX/UI Designer</div>
+                    <button class="logout-btn-detail" style="margin-top: 15px;">
+                        Archive
+                    </button>
+                </div>
+                
+                <div class="detail-card">
+                    <h4>Archivos compartidos</h4>
+                    <div style="font-size: 0.9rem; color: var(--text-light);">No hay archivos recientes.</div>
+                </div>
+            </aside>
+            
         </div>
     </div>
 
     <script>
-        // Este código es solo para demostración visual
         document.addEventListener('DOMContentLoaded', function() {
-            const userItems = document.querySelectorAll('.user-item');
+            // Inicializar el usuario actual y el nombre del perfil
+            const currentUser = localStorage.getItem('currentUser') || 'Bill Bradford'; // Nombre por defecto
+            const userInitial = currentUser.charAt(0).toUpperCase();
+            
+            document.getElementById('current-user-header').textContent = currentUser; // En el header global
+            document.getElementById('current-user-name').textContent = currentUser; // En el profile card
+            document.getElementById('profile-initial').textContent = userInitial; // Avatar en profile card
+
+            const userItems = document.querySelectorAll('.conversation-item'); 
             const messageInput = document.getElementById('message-input');
             const sendBtn = document.getElementById('send-btn');
             const messagesContainer = document.getElementById('messages-container');
-            const chatAreaHeader = document.querySelector('.chat-area-header h3');
-            const selectedUserInfo = document.querySelector('.selected-user-info');
-            const selectedUserName = document.querySelector('.selected-user-name');
-            const selectedUserAvatar = document.querySelector('.selected-user-avatar');
-            
+            const chatHeaderName = document.getElementById('chat-header-name');
+            const contactNameDetail = document.getElementById('contact-name-detail');
+            const contactAvatarDetailInitial = document.getElementById('contact-avatar-detail-initial');
+            const typingIndicator = document.getElementById('typing-indicator');
+            const typingUserName = document.getElementById('typing-user-name');
+
+
+            // Lógica para cerrar sesión (Simulación)
+            document.getElementById('logout-btn-header').addEventListener('click', function() { // Usar el nuevo botón del header
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('userId');
+                window.location.href = '/'; 
+            });
+
+            // --- LOGICA DE SELECCIÓN DE USUARIO (ADAPTADA DE TU CÓDIGO ORIGINAL) ---
             userItems.forEach(item => {
                 item.addEventListener('click', function() {
-                    // Remover clase activa de todos los usuarios
                     userItems.forEach(user => user.classList.remove('active'));
-                    
-                    // Agregar clase activa al usuario seleccionado
                     this.classList.add('active');
                     
-                    // Obtener nombre de usuario
-                    const userName = this.querySelector('.user-name').textContent;
-                    const userInitial = userName.charAt(0);
+                    const userName = this.querySelector('.conv-name').textContent;
+                    const contactInitial = userName.charAt(0).toUpperCase();
                     
-                    // Actualizar header del chat
-                    chatAreaHeader.textContent = `Chat con ${userName}`;
-                    selectedUserName.textContent = userName;
-                    selectedUserAvatar.textContent = userInitial;
-                    selectedUserInfo.style.display = 'flex';
+                    // Actualizar el header del chat y la barra de detalles
+                    chatHeaderName.textContent = `Chat con ${userName}`;
+                    contactNameDetail.textContent = userName;
+                    contactAvatarDetailInitial.textContent = contactInitial;
                     
-                    // Habilitar input y botón
                     messageInput.disabled = false;
-                    messageInput.placeholder = `Escribe un mensaje a ${userName}...`;
+                    messageInput.placeholder = `Enter your message to ${userName}`;
                     sendBtn.disabled = false;
                     
-                    // Limpiar mensajes anteriores y mostrar mensaje de inicio
-                    messagesContainer.innerHTML = '';
+                    // Actualizar el nombre del usuario escribiendo
+                    typingUserName.textContent = userName;
+
+                    // Simular que el typing indicator aparece y desaparece
+                    typingIndicator.style.display = 'flex';
+                    setTimeout(() => {
+                        typingIndicator.style.display = 'none';
+                    }, 3000); // Se oculta después de 3 segundos
                     
-                    // Agregar mensaje de sistema
-                    const systemMsg = document.createElement('div');
-                    systemMsg.className = 'system-message';
-                    systemMsg.textContent = `Has iniciado una conversación con ${userName}`;
-                    messagesContainer.appendChild(systemMsg);
-                    
-                    
+                    // Limpiar mensajes anteriores y simular inicio de chat
+                    messagesContainer.innerHTML = `
+                        <div style="text-align: center; color: var(--text-light); font-size: 0.8rem; padding: 10px;">
+                            Has iniciado una conversación con ${userName}
+                        </div>
+                    `;
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
                 });
             });
             
-            // Enviar mensaje
+            // --- LOGICA DE ENVÍO DE MENSAJE (TU CÓDIGO ORIGINAL) ---
             sendBtn.addEventListener('click', sendMessage);
             messageInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
@@ -528,23 +806,19 @@
                 const message = messageInput.value.trim();
                 if (message === '') return;
                 
-                const selectedUser = document.querySelector('.user-item.active .user-name').textContent;
-                
-                // Crear elemento de mensaje
                 const messageElement = document.createElement('div');
-                messageElement.className = 'message user';
+                messageElement.className = 'message user'; 
                 messageElement.innerHTML = `
-                    <div class="message-header">
-                        <span class="message-sender">Tú</span>
+                    <div class="message-avatar" style="background-color: var(--secondary-color);">${userInitial}</div>
+                    <div class="message-content-wrapper">
+                        <div class="message-content">${message}</div>
                         <span class="message-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                     </div>
-                    <div class="message-content">${message}</div>
                 `;
                 
                 messagesContainer.appendChild(messageElement);
                 messageInput.value = '';
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                
             }
         });
     </script>

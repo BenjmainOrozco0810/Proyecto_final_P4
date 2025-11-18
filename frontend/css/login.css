@@ -1,87 +1,276 @@
+/* Importar una fuente moderna (Roboto) */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
+:root {
+    --primary-color: #6a0dad; /* Púrpura más oscuro para coincidir con la referencia */
+    --primary-light: #8e2de2; /* Púrpura más claro */
+    --primary-gradient: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
+    --secondary-color: #c0c0c0; /* Gris más claro para texto */
+    --background-light: #f0f2f5; /* Fondo muy claro */
+    --card-background: #ffffff;
+    --text-color: #343a40;
+    --shadow-light: 0 4px 15px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
 * {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
 }
 
 body {
-    font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    height: 100vh;
+    font-family: 'Roboto', sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
+    min-height: 100vh;
+    background-color: var(--background-light);
+    color: var(--text-color);
+    position: relative;
+    overflow: hidden;
 }
 
-.login-container {
-    background: white;
-    padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+/* --- Estilos para el Fondo Animado CON PATRÓN DE CHAT --- */
+/* (Sin cambios significativos aquí, mantiene el patrón de burbujas) */
+.background-animation {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    max-width: 400px;
+    height: 100%;
+    
+    background: linear-gradient(135deg, #a8c0ff 0%, #007bff 100%); /* Fondo más azul para un buen contraste */
+    opacity: 1; 
+    z-index: -1;
+    
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%23ffffff' fill-opacity='0.1' d='M 10 20 Q 5 20 5 25 L 5 70 Q 5 75 10 75 L 75 75 Q 80 75 80 70 L 80 25 Q 80 20 75 20 L 10 20 Z M 20 50 L 50 50 L 50 50 L 20 50 Z' /%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 150px 150px; 
+    
+    animation: backgroundShift 20s ease-in-out infinite alternate;
 }
 
-.login-header {
+@keyframes backgroundShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 100% 50%;
+    }
+}
+
+/* --- Contenedor Principal (Login Wrapper) --- */
+.login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 800px; /* Ancho ajustado para las dos secciones */
+    min-height: 500px;
+    padding: 20px;
+}
+
+.login-card {
+    display: flex; /* Flexbox para dividir en dos columnas */
+    background-color: var(--card-background);
+    border-radius: 15px;
+    box-shadow: var(--shadow-hover);
+    overflow: hidden; /* Asegura que las esquinas redondeadas se vean bien */
+    width: 100%;
+}
+
+/* --- Sección de Bienvenida (Columna izquierda/derecha con fondo púrpura) --- */
+.welcome-section {
+    flex: 1;
+    background: var(--primary-gradient); /* Degradado púrpura */
+    color: white;
+    padding: 40px 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     text-align: center;
-    margin-bottom: 2rem;
+    min-width: 280px; /* Ancho mínimo para que no se vea aplastado */
 }
 
-.login-header h1 {
-    color: #333;
-    margin-bottom: 0.5rem;
+.welcome-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
 }
 
-.login-header p {
-    color: #666;
-    font-size: 0.9rem;
+.welcome-section h2 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.welcome-section p {
+    font-size: 1rem;
+    opacity: 0.9;
+    line-height: 1.5;
+}
+
+.university-info {
+    margin-top: 30px;
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+/* --- Sección del Formulario (Columna del formulario) --- */
+.form-section {
+    flex: 1.2; /* Puede ocupar un poco más de espacio que la bienvenida */
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-width: 320px; /* Ancho mínimo para el formulario */
+}
+
+.form-header {
+    margin-bottom: 30px;
+}
+
+.form-header h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 5px;
+}
+
+.form-header p {
+    font-size: 1rem;
+    color: var(--secondary-color);
+}
+
+.up-highlight {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+/* --- Formulario y Campos (igual que antes, pero centrado en su sección) --- */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    max-width: 300px; 
 }
 
 .input-group {
-    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    overflow: hidden;
+    padding: 0 10px;
+    background-color: #f8f9fa;
+    transition: all 0.3s ease;
 }
 
-label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #333;
-    font-weight: bold;
+.input-group:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(106, 13, 173, 0.25); /* Sombra púrpura */
+    background-color: var(--card-background);
 }
 
-input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 2px solid #ddd;
-    border-radius: 5px;
-    font-size: 1rem;
+.input-group .icon {
+    color: var(--secondary-color);
+    margin-right: 10px;
+    font-size: 1.1rem;
 }
 
-input:focus {
-    outline: none;
-    border-color: #667eea;
+.input-group:focus-within .icon {
+    color: var(--primary-color);
 }
 
-.login-btn {
-    width: 100%;
-    padding: 0.75rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+.input-group input {
+    flex-grow: 1;
     border: none;
-    border-radius: 5px;
+    padding: 12px 0;
     font-size: 1rem;
+    outline: none;
+    background: transparent;
+    color: var(--text-color);
+}
+
+.input-group input::placeholder {
+    color: #adb5bd;
+}
+
+
+/* --- Botón (ahora con el color púrpura) --- */
+.login-btn {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 700;
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
 }
 
 .login-btn:hover {
+    background-color: var(--primary-light); /* Un púrpura más claro al hacer hover */
     transform: translateY(-2px);
 }
 
-.project-info {
-    margin-top: 1.5rem;
-    padding-top: 1rem;
-    border-top: 1px solid #eee;
-    text-align: center;
-    color: #666;
-    font-size: 0.8rem;
+.login-btn:active {
+    transform: translateY(0);
+}
+
+.login-btn:disabled {
+    background-color: var(--secondary-color);
+    cursor: not-allowed;
+    transform: none;
+}
+
+
+/* --- Pie de Página del Formulario --- */
+.form-footer {
+    margin-top: 25px;
+    padding-top: 15px;
+    /* No border-top para este diseño, ya que está dentro de la sección blanca */
+    font-size: 0.9rem;
+    width: 100%;
+    max-width: 300px; 
+}
+
+.register-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 700;
+    transition: color 0.3s ease;
+}
+
+.register-link:hover {
+    color: var(--primary-light);
+    text-decoration: underline;
+}
+
+/* --- Responsive Design para pantallas pequeñas --- */
+@media (max-width: 768px) {
+    .login-card {
+        flex-direction: column; /* Apila las secciones verticalmente */
+        max-width: 400px; /* Reduce el ancho máximo */
+        min-height: auto; 
+    }
+
+    .welcome-section {
+        border-bottom-left-radius: 0; /* Ajusta bordes para cuando se apilan */
+        border-bottom-right-radius: 0;
+        padding: 30px;
+    }
+
+    .form-section {
+        padding: 30px;
+    }
 }
